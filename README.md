@@ -10,6 +10,14 @@
 
 ### Program (located in Crawler.cs) looks like this
 ``` C#
+using System;
+using System.Threading.Tasks;
+using Abot2.Core;
+using Abot2.Crawler;
+using Abot2.Poco;
+using Serilog;
+
+
 namespace ScrapeAndCrawl
 {
     class Crawler
