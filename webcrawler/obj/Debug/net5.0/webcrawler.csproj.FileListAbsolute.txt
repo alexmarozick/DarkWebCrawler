@@ -1,0 +1,16 @@
+C:\Users\Setht\Desktop\CIS 433\DarkWebCrawler\webcrawler\bin\Debug\net5.0\webcrawler.exe
+C:\Users\Setht\Desktop\CIS 433\DarkWebCrawler\webcrawler\bin\Debug\net5.0\webcrawler.deps.json
+C:\Users\Setht\Desktop\CIS 433\DarkWebCrawler\webcrawler\bin\Debug\net5.0\webcrawler.runtimeconfig.json
+C:\Users\Setht\Desktop\CIS 433\DarkWebCrawler\webcrawler\bin\Debug\net5.0\webcrawler.runtimeconfig.dev.json
+C:\Users\Setht\Desktop\CIS 433\DarkWebCrawler\webcrawler\bin\Debug\net5.0\webcrawler.dll
+C:\Users\Setht\Desktop\CIS 433\DarkWebCrawler\webcrawler\bin\Debug\net5.0\ref\webcrawler.dll
+C:\Users\Setht\Desktop\CIS 433\DarkWebCrawler\webcrawler\bin\Debug\net5.0\webcrawler.pdb
+C:\Users\Setht\Desktop\CIS 433\DarkWebCrawler\webcrawler\obj\Debug\net5.0\webcrawler.csprojAssemblyReference.cache
+C:\Users\Setht\Desktop\CIS 433\DarkWebCrawler\webcrawler\obj\Debug\net5.0\webcrawler.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Setht\Desktop\CIS 433\DarkWebCrawler\webcrawler\obj\Debug\net5.0\webcrawler.AssemblyInfoInputs.cache
+C:\Users\Setht\Desktop\CIS 433\DarkWebCrawler\webcrawler\obj\Debug\net5.0\webcrawler.AssemblyInfo.cs
+C:\Users\Setht\Desktop\CIS 433\DarkWebCrawler\webcrawler\obj\Debug\net5.0\webcrawler.csproj.CoreCompileInputs.cache
+C:\Users\Setht\Desktop\CIS 433\DarkWebCrawler\webcrawler\obj\Debug\net5.0\webcrawler.dll
+C:\Users\Setht\Desktop\CIS 433\DarkWebCrawler\webcrawler\obj\Debug\net5.0\ref\webcrawler.dll
+C:\Users\Setht\Desktop\CIS 433\DarkWebCrawler\webcrawler\obj\Debug\net5.0\webcrawler.pdb
+C:\Users\Setht\Desktop\CIS 433\DarkWebCrawler\webcrawler\obj\Debug\net5.0\webcrawler.genruntimeconfig.cache
