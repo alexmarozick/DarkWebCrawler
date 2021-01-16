@@ -9,7 +9,7 @@
 </br>
 
 ### Program (located in Crawler.cs) looks like this
-```
+``` C#
 namespace ScrapeAndCrawl
 {
     class Crawler
