@@ -14,3 +14,10 @@ C:\Users\Setht\Desktop\CIS 433\DarkWebCrawler\webcrawler\obj\Debug\net5.0\webcra
 C:\Users\Setht\Desktop\CIS 433\DarkWebCrawler\webcrawler\obj\Debug\net5.0\ref\webcrawler.dll
 C:\Users\Setht\Desktop\CIS 433\DarkWebCrawler\webcrawler\obj\Debug\net5.0\webcrawler.pdb
 C:\Users\Setht\Desktop\CIS 433\DarkWebCrawler\webcrawler\obj\Debug\net5.0\webcrawler.genruntimeconfig.cache
+C:\Users\Setht\Desktop\CIS 433\DarkWebCrawler\webcrawler\bin\Debug\net5.0\Abot2.dll
+C:\Users\Setht\Desktop\CIS 433\DarkWebCrawler\webcrawler\bin\Debug\net5.0\AngleSharp.dll
+C:\Users\Setht\Desktop\CIS 433\DarkWebCrawler\webcrawler\bin\Debug\net5.0\NRobotsCore.dll
+C:\Users\Setht\Desktop\CIS 433\DarkWebCrawler\webcrawler\bin\Debug\net5.0\Serilog.dll
+C:\Users\Setht\Desktop\CIS 433\DarkWebCrawler\webcrawler\bin\Debug\net5.0\Serilog.Enrichers.Thread.dll
+C:\Users\Setht\Desktop\CIS 433\DarkWebCrawler\webcrawler\bin\Debug\net5.0\Serilog.Sinks.Console.dll
+C:\Users\Setht\Desktop\CIS 433\DarkWebCrawler\webcrawler\obj\Debug\net5.0\webcrawler.csproj.CopyComplete
