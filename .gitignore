@@ -1,0 +1,22 @@
+#vscode
+.vscode/
+# Environments
+/env
+*.env
+*.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+#pycache
+.pytest_cache/
+__pycache__/
+.flask_session/
+Prototypes/
+.vscode/
+.pytest_cache/
+__pycache__/
+
+#other stuff
+config.ini
