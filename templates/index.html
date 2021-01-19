@@ -1,14 +1,215 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Homepage</title>
-</head>
+    <head>
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+        <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+        <script src="https://kit.fontawesome.com/75ff20203d.js" crossorigin="anonymous"></script>
+        <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Saira:wght@300;500&display=swap" rel="stylesheet">
+       
+        <link rel="stylesheet" href="../static/stylesheets/navbar.css">
+        <link rel="stylesheet" href="../static/stylesheets/footer.css">
+        <link rel="stylesheet" href="../static/stylesheets/root.css">
+
+
+
+        <!-- Javascript:  JQuery from a content distribution network (CDN) -->
+        <script
+        src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js">
+        </script>
+
+        <title>Dark Web Crawler</title>
+    </head>
+
+
 <body>
+    <div class="nav-menu"> 
+        <div class="bar top"></div> <!--top bar of menu-->
+        <div class="bar"></div>     <!--mid bar of menu-->
+        <div class="bar bot"></div> <!--bottom bar of menu-->
+    </div>
+    
+    <nav class="top-nav">
+        <ul class="nav-list">
+
+            <li class="nav-item">
+                <a href="#Home" class="nav-link">Home</a>
+            </li>
+
+            <li class="nav-item">
+                <a href="/about" class="nav-link">About</a>
+            </li>
+            
+            <li class="nav-item">
+                <a href="/data_analysis" class="nav-link">Data Analysis</a>
+            </li>
+
+            <li class="nav-social"> 
+                <div class="socials">
+                    <a href="https://github.com/alexmarozick/DarkWebCrawler" class="icon-link" target="_blank">
+                        <i class="fa fa-github" aria-hidden="true"></i>
+                    </a>
+                </div>
+            </li>
+
+        </ul>
+            <label class="switch">
+                <input type="checkbox" id="checkbox" />
+                <span class="slider"></span>
+            </label>
+    </nav>
 
 
-    
-    
+    <main>
+        <h1 class="title" id="Home">Dark Web Crawler</h1>
+        <br>
+
+
+        <!-- <div id="input_container"> 
+            <div id="L"> 
+                <label for="sname" id="sname">Song name:</label><br>
+                <input class="song" type="text" name="song" id="song" placeholder="Type song name here">
+            </div>
+            <div id="M">
+                <label for="sartist" id="sartist">Artist name:</label><br>
+                <input class="artist" type="text" name="artist" id="artist" placeholder="Type artist name here">
+            </div>
+            <div id="R">
+                <br>
+                <input class="btn" type="submit" name="Submit" value="Submit" id="submit-btn">
+            </div>
+        </div>
+
+        <br> -->
+        <!-- submit button for searches into the db-->
+        <!-- <script type=text/javascript>
+            $(function() {
+                $('#submit-btn').click(function(){
+
+                    $.getJSON('/get-lyrics',{
+                        songid: $('#song').val(),
+                        artistid: $('#artist').val()
+                    },
+                    function(data){
+                        // document.getElementById("result").innerHTML = data.result;
+                        if(data.result == "") {
+                            alert("Can't input empty box!")
+                        }
+                        document.getElementById("textarea").innerHTML = data.result;
+                    });
+                });
+            });
+        </script> -->
+        <!-- end of ajax -->
+
+        <!-- <div class="output-box"> -->
+            <!-- text area class was wrapper -->
+            <!-- <div class="wrapper" id="textarea">
+                <p id="result" placeholder="result placeholder"> </p>  
+            </div>
+
+        </div>
+
+        <div id="examples-container">
+            <div id="examples">
+                <h3>Notable examples:</h3>
+                <li>I Think by Tyler, The Creator</li>
+                <li>Clout Cobain by Denzel Curry</li>
+                <li>Sirens by Denzel Curry</li>
+                <li>Tragedy by RZA</li>
+                <li>DNA by Kendrick Lamar</li>
+                <li>Stan by Eminem</li>
+                <li>Gin And Juice by Snoop Dogg</li>
+                
+            </div>
+        </div> -->
+
+        <!-- The following container and script are for user entered lyrics being submitted -->
+        <!-- <div id="text-submit-btn-container">
+            <input class="btn" type="submit" name="TextSubmitName" value="TextSubmitValue" id="text-submit-btn">
+        </div> -->
+<!-- 
+        <script type=text/javascript>
+            $(function() {
+                $('#text-submit-btn').click(function(){
+                    $.getJSON('/user-lyrics',{
+                        textboxid: $('#textarea').val(),
+                    },
+                    function(data){
+                        document.getElementById("result").innerHTML = data.result;
+                    });
+                });
+            });
+        </script> -->
+
+    </main>
+
+    <!-- footer -->
+    <div class="footer-container">
+
+        <div class="footer-heading footer-1">
+            <ul class="contact-info">
+                <li class="contact-item">
+                    <h3>Alex Marozick</h3>
+                <li class="contact-item">
+                    <a href="https://github.com/alexmarozick" class="contact-icon" target="_blank">
+                        <i class="fa fa-github" aria-hidden="true"></i>
+                    </a>
+                </li>
+                <li class="contact-item">
+                    <a href="https://www.linkedin.com/in/alex-marozick-290b85195/" class="contact-icon" target="_blank">
+                        <i class="fa fa-linkedin-square" aria-hidden="true"></i>
+                    </a>
+                </li>
+                <li class="contact-item">
+                    <a class="email-link" href="mailto:alexmarozick@gmail.com">alexmarozick@gmail.com</a>
+                </li>
+            </ul>        
+        </div>
+        
+        <div class="footer-heading footer-2">
+            <ul class="contact-info">
+                <li class="contact-item">
+                    <h3>Juno Mayer</h3>
+                </li>
+                <li class="contact-item">
+                    <a href="https://github.com/Saybrr" class="contact-icon" target="_blank">
+                        <i class="fa fa-github" aria-hidden="true"></i>
+                    </a>
+                </li>
+                <li class="contact-item">
+                    <a href="https://www.linkedin.com/in/juno-mayer-b50a441a2/" class="contact-icon" target="_blank">
+                        <i class="fa fa-linkedin-square" aria-hidden="true"></i>
+                    </a>
+                </li>
+                <li class="contact-item">
+                    <a class="email-link" href="mailto:gjvmayer@gmail.com"> gjvmayer@gmail.com</a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="footer-heading footer-3">
+            <ul class="contact-info">
+                <li class="contact-item">
+                    <h3>Seth Tal</h3>
+                </li>
+                <li class="contact-item">
+                <a href="https://sephta.github.io/" class="contact-icon" target="_blank">
+                    <i class="fa fa-github" aria-hidden="true"></i>
+                </a>
+                </li>
+                <li class="contact-item">
+                    <a class="email-link" href="mailto:seth.tal255@gmail.com">seth.tal255@gmail.com</a>
+                </li>
+            </ul>
+        </div>
+
+    </div>
+
+<script src="../static/JSscripts/main.js"></script>
 </body>
+
 </html>
