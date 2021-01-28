@@ -20,7 +20,6 @@ using Serilog;         // Serilog provides diagnostic logging to files
 #endregion
 
 
-
 namespace ScrapeAndCrawl
 {
 #region Crawler Class
@@ -61,26 +60,26 @@ namespace ScrapeAndCrawl
         private static async Task SimpleCrawler(string uriToCrawl = "http://google.com")
         {
             #region Normal Polite Crawler
-            Log.Logger.Information("Running Abot2 polite crawler...\n");
-            // "CrawlConfiguration" from Abot2.Poco namespace
-            // For specific configuration requirements the use of a "CrawlConfiguration" object
-            // can be used when creating crawlers like the one bellow...
-            var config = new CrawlConfiguration
-            {
-                MaxPagesToCrawl = 10, //Only crawl 10 pages
-                MinCrawlDelayPerDomainMilliSeconds = 3000 //Wait this many millisecs between requests
-            };
+            // Log.Logger.Information("Running Abot2 polite crawler...\n");
+            // // "CrawlConfiguration" from Abot2.Poco namespace
+            // // For specific configuration requirements the use of a "CrawlConfiguration" object
+            // // can be used when creating crawlers like the one bellow...
+            // var config = new CrawlConfiguration
+            // {
+            //     MaxPagesToCrawl = 10, //Only crawl 10 pages
+            //     MinCrawlDelayPerDomainMilliSeconds = 3000 //Wait this many millisecs between requests
+            // };
 
-            // "PoliteWebCrawler" from Abot2.Crawler namespace
-            // This creates a new "PoliteWebCrawler" object with configuration defined above
-            var crawler = new PoliteWebCrawler(config);
+            // // "PoliteWebCrawler" from Abot2.Crawler namespace
+            // // This creates a new "PoliteWebCrawler" object with configuration defined above
+            // var crawler = new PoliteWebCrawler(config);
 
-            // Subscribes method "PageCrawlMethod" to the PageCrawlCompleted event
-            //PageCrawlMethod is now executed on PageCrawlCompleted
-            crawler.PageCrawlCompleted += PageCrawlMethod;
+            // // Subscribes method "PageCrawlMethod" to the PageCrawlCompleted event
+            // //PageCrawlMethod is now executed on PageCrawlCompleted
+            // crawler.PageCrawlCompleted += PageCrawlMethod;
 
-            // Change the URL inside of the Uri object to have this crawler crawl somewhere else
-            var crawlResult = await crawler.CrawlAsync(new Uri(uriToCrawl));
+            // // Change the URL inside of the Uri object to have this crawler crawl somewhere else
+            // var crawlResult = await crawler.CrawlAsync(new Uri(uriToCrawl));
             #endregion
             
             #region X Crawler
@@ -102,7 +101,7 @@ namespace ScrapeAndCrawl
             // {
             //     if (CrawledPage.Uri.AbsoluteUri.Contains("ghost"))
             //         return new CrawlDecision { Allow = false, Reason = "scared to render ghost javascript." };
-                
+
             //     return new CrawlDecision { Allow = true };
             // });
 
@@ -110,6 +109,29 @@ namespace ScrapeAndCrawl
 
             // var crawlerXTask = await crawlerX.CrawlAsync(new Uri(uriToCrawl));
             
+            #endregion
+
+            #region AbotX Crawler Demo (from github)
+
+            var pathToPhantomJSExeFolder = @"C:\Users\Setht\.nuget\packages\phantomjs\2.1.1\tools\phantomjs";
+            var config = new CrawlConfigurationX
+            {
+                IsJavascriptRenderingEnabled = true,
+                JavascriptRendererPath = pathToPhantomJSExeFolder,
+                IsSendingCookiesEnabled = true,
+                MaxConcurrentThreads = 1,
+                MaxPagesToCrawl = 1,
+                JavascriptRenderingWaitTimeInMilliseconds = 3000,
+                CrawlTimeoutSeconds = 20
+            };
+
+            using (var crawler = new CrawlerX(config))
+            {
+                crawler.PageCrawlCompleted += PageCrawlMethod;
+
+                await crawler.CrawlAsync(new Uri(uriToCrawl));
+            }
+
             #endregion
         }
         
