@@ -10,13 +10,13 @@
         "dependencies": {
           "Abot": "2.0.67",
           "AbotX": "2.1.8",
+          "CommandLineParser": "2.8.0",
           "MongoDB.Bson": "2.11.6",
           "MongoDB.Driver": "2.11.6",
           "MongoDB.Driver.Core": "2.11.6",
           "Serilog": "2.10.0",
           "Serilog.Sinks.Console": "3.1.1",
-          "Serilog.Sinks.File": "4.1.0",
-          "TidyManaged": "1.0.0"
+          "Serilog.Sinks.File": "4.1.0"
         },
         "runtime": {
           "webcrawler.dll": {}
@@ -64,6 +64,14 @@
           "lib/netstandard2.0/AngleSharp.dll": {
             "assemblyVersion": "0.12.1.0",
             "fileVersion": "0.12.1.0"
+          }
+        }
+      },
+      "CommandLineParser/2.8.0": {
+        "runtime": {
+          "lib/netstandard2.0/CommandLine.dll": {
+            "assemblyVersion": "2.8.0.0",
+            "fileVersion": "2.8.0.0"
           }
         }
       },
@@ -1134,14 +1142,6 @@
           "System.Threading": "4.3.0",
           "System.Xml.ReaderWriter": "4.3.0"
         }
-      },
-      "TidyManaged/1.0.0": {
-        "runtime": {
-          "lib/net20/TidyManaged.dll": {
-            "assemblyVersion": "1.0.0.0",
-            "fileVersion": "1.0.0.0"
-          }
-        }
       }
     }
   },
@@ -1171,6 +1171,13 @@
       "sha512": "sha512-P2dlrv3WyMeM7YCwD8Zpz4uuAs4KBwbGG9CYQvok0HViaOk0Lb2+H2buaDwVHw+inThGFAbQUC0ypbXtC2biHg==",
       "path": "anglesharp/0.12.1",
       "hashPath": "anglesharp.0.12.1.nupkg.sha512"
+    },
+    "CommandLineParser/2.8.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-eco2HlKQBY4Joz9odHigzGpVzv6pjsXnY5lziioMveQxr+i2Z7xYcIOMeZTgYiqnMtMAbXMXsVhrNfWO5vJS8Q==",
+      "path": "commandlineparser/2.8.0",
+      "hashPath": "commandlineparser.2.8.0.nupkg.sha512"
     },
     "CoreCompat.Portable.Licensing/1.2.4": {
       "type": "package",
@@ -1934,13 +1941,6 @@
       "sha512": "sha512-5zJ0XDxAIg8iy+t4aMnQAu0MqVbqyvfoUVl1yDV61xdo3Vth45oA2FoY4pPkxYAH5f8ixpmTqXeEIya95x0aCQ==",
       "path": "system.xml.xdocument/4.3.0",
       "hashPath": "system.xml.xdocument.4.3.0.nupkg.sha512"
-    },
-    "TidyManaged/1.0.0": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-Np7wZYNQFfCte3wXn9p7ECIZzikE6ARZdokBb7kDk3i34KdYNM6F8TxXrI6c2SqvojHi/7OK50QSWUVcdFUVMg==",
-      "path": "tidymanaged/1.0.0",
-      "hashPath": "tidymanaged.1.0.0.nupkg.sha512"
     }
   }
 }

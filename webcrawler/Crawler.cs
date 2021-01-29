@@ -1,6 +1,7 @@
 #region using statements
 // .NET
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 // Abot2
@@ -16,6 +17,9 @@ using AbotX2.Poco;     //
 // Logger
 using Serilog;         // Serilog provides diagnostic logging to files
 
+// Command Line Arguement Parser
+using CommandLine;
+
 //mongoDB
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -24,6 +28,19 @@ using MongoDB.Driver;
 
 namespace ScrapeAndCrawl
 {
+#region CMD arg Parser
+
+    public class Options
+    {
+        [Option('f', "file", Required=false, HelpText="Text file containing list of websites to crawl.")]
+        public string InputFile { get; set; }
+
+        [Option('s', "start", Required=true, HelpText="Starting URL to crawl from.")]
+        public string StartingUri { get; set; }
+    }
+
+#endregion
+
 #region Crawler Class
 
     /// <summary>
@@ -31,9 +48,18 @@ namespace ScrapeAndCrawl
     /// </summary>
     class Crawler
     {
+        // PUBLIC CLASS MEMBERS
+        static Options parsedArgs;
+
+        // PRIVATE CLASS MEMBERS
+
+        // MAIN ===================================================================================
+        // ========================================================================================
+        // ========================================================================================
         /// <param name="args"> Command line arguements passed to executable. </param>
         static async Task Main(string[] args)
         {
+            // * SET UP LOGGER --------------------------------------------------------------------
             // "Log" from Serilog namespace
             // Configure the logging tool for nice command line prints/formats
             Log.Logger = new LoggerConfiguration()
@@ -42,8 +68,28 @@ namespace ScrapeAndCrawl
                 .WriteTo.File("./log/log.txt")
                 .CreateLogger();
 
-            Log.Logger.Information("Minimal Crawler Demo start...");
+            Log.Logger.Information("Darkweb Data Scraper start...");
+            // * ----------------------------------------------------------------------------------
 
+            // * PARSE COMMAND LINE ARGS ----------------------------------------------------------
+            // Uses CommandLine to parse predefined command line args
+            Parser.Default.ParseArguments<Options>(args)
+                .WithParsed<Options>(o =>
+                {
+                    if (o.StartingUri != null || o.StartingUri != "")
+                    {
+                        Log.Logger.Information("Starting Crawl From: " + o.StartingUri);
+                    }
+
+                    parsedArgs = o;
+                })
+                .WithNotParsed<Options>(ParseErrorHandler);
+
+            // "parsedArgs" static member contains parsed command line args
+            // * ----------------------------------------------------------------------------------
+
+            // * SETUP AND EXECUTE CRAWLER ========================================================
+            // Setup Crawler configuration
             CrawlConfigurationX crawlConfig = new CrawlConfigurationX
             {
                 MaxPagesToCrawl = 10,                             // Number of sites to crawl
@@ -53,20 +99,42 @@ namespace ScrapeAndCrawl
                 // ? MaxConcurrentThreads = 8                         // Logical processor count to avoid cpu thrashing
             };
 
-            await DataScraper.Crawl(crawlConfig, args[0]);
+            // Crawl
+            await DataScraper.Crawl(crawlConfig, parsedArgs.StartingUri);
 
+            // Check if cached Data
             if (DataScraper.dataDocuments.Count > 0)
             {
+                // Fetch data
                 for (int i = 0; i < DataScraper.dataDocuments.Count; i++)
                 {
-                    Log.Logger.Information(DataScraper.dataDocuments[i].ToJson());
+                    // ! Log.Logger.Information(DataScraper.dataDocuments[i].ToJson());
                     // TODO mongoDB add document ( DataScraper.dataDocuments[i])
                 }
             }
 
             // var client = new MongoClient("mongodb+srv://<username>:<password>@<cluster-address>/test?w=majority");
             // var database = client.GetDatabase("test");
+            // * ==================================================================================
         }
+        // ========================================================================================
+        // ========================================================================================
+        // ========================================================================================
+
+
+        // CLASS METHODS ==========================================================================
+        // ========================================================================================
+        // ========================================================================================
+
+        static void ParseErrorHandler(IEnumerable<Error> error)
+        {
+            // ? If error handling args then hault execution of program
+            System.Environment.Exit(0);
+        }
+
+        // ========================================================================================
+        // ========================================================================================
+        // ========================================================================================
     }
 #endregion
 }
