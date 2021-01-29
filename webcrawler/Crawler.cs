@@ -55,9 +55,9 @@ namespace ScrapeAndCrawl
 #region Crawler Class
 
     /// <summary>
-    /// Seth Tal, Juno Mayor, Alex Marozick.
     /// Command Line Web Scraper. Scrapes hardcoded data from a starting
-    /// uri or scrapes a list of websites written to a txt file.
+    /// uri or scrapes a list of websites written to a txt file. <br></br>
+    /// Seth Tal, Juno Mayor, Alex Marozick.
     /// </summary>
     class Crawler
     {
