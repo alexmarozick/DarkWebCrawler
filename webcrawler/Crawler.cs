@@ -16,8 +16,6 @@ using AbotX2.Poco;     //
 // Logger
 using Serilog;         // Serilog provides diagnostic logging to files
 
-//Linq ?? 
-
 //mongoDB
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -45,21 +43,32 @@ namespace ScrapeAndCrawl
             Log.Logger.Information("Minimal Crawler Demo start...");
 
             // If a url is not provided then use default url
-            if (args.Length == 0)
+            // if (args.Length == 0)
+            // {
+            //     await SimpleCrawler();
+            //     await SinglePageRequest();
+            // }
+            // else // use provided url passed in as an arg
+            // {
+            //     await SimpleCrawler(args[0]);
+            //     await SinglePageRequest(args[0]);
+            // }
+
+            DataScraper ds = new DataScraper();
+
+            await DataScraper.CrawlSingleSite(args[0]);
+
+            if (DataScraper.dataDocuments.Count > 0)
             {
-                await SimpleCrawler();
-                await SinglePageRequest();
-            }
-            else // use provided url passed in as an arg
-            {
-                await SimpleCrawler(args[0]);
-                await SinglePageRequest(args[0]);
+                for (int i = 0; i < DataScraper.dataDocuments.Count; i++)
+                {
+                    Log.Logger.Information(DataScraper.dataDocuments[i].ToJson());
+                    // mongoDB add document ( DataScraper.dataDocuments[i])
+                }
             }
 
-            var client = new MongoClient("mongodb+srv://<username>:<password>@<cluster-address>/test?w=majority");
-            var database = client.GetDatabase("test");
-
-
+            // var client = new MongoClient("mongodb+srv://<username>:<password>@<cluster-address>/test?w=majority");
+            // var database = client.GetDatabase("test");
         }
 
         /// <summary>

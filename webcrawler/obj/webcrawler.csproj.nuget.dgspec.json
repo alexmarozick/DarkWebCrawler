@@ -45,6 +45,18 @@
             "AbotX": {
               "target": "Package",
               "version": "[2.1.8, )"
+            },
+            "MongoDB.Bson": {
+              "target": "Package",
+              "version": "[2.11.6, )"
+            },
+            "MongoDB.Driver": {
+              "target": "Package",
+              "version": "[2.11.6, )"
+            },
+            "MongoDB.Driver.Core": {
+              "target": "Package",
+              "version": "[2.11.6, )"
             }
           },
           "imports": [
