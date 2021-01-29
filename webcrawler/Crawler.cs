@@ -50,7 +50,7 @@ namespace ScrapeAndCrawl
                 IsJavascriptRenderingEnabled = true,              // Should crawler render JS?
                 JavascriptRenderingWaitTimeInMilliseconds = 3000, // How long to wait for js to process 
                 MaxConcurrentSiteCrawls = 1                      // Only crawl a single site at a time
-                // MaxConcurrentThreads = 8                         // Logical processor count to avoid cpu thrashing
+                // ? MaxConcurrentThreads = 8                         // Logical processor count to avoid cpu thrashing
             };
 
             await DataScraper.Crawl(crawlConfig, args[0]);
@@ -60,7 +60,7 @@ namespace ScrapeAndCrawl
                 for (int i = 0; i < DataScraper.dataDocuments.Count; i++)
                 {
                     Log.Logger.Information(DataScraper.dataDocuments[i].ToJson());
-                    // mongoDB add document ( DataScraper.dataDocuments[i])
+                    // TODO mongoDB add document ( DataScraper.dataDocuments[i])
                 }
             }
 
