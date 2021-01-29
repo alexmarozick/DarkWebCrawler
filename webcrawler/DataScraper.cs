@@ -46,9 +46,9 @@ namespace ScrapeAndCrawl
         /* ================================= Class Methods {Public} ============================ */
 
         /// <summary>
-        /// Static metod for crawling. Pass in a configuration
+        /// Static method for crawling. Pass in a configuration
         /// (i.e. specify how many sites to crawl, whether or not to 
-        /// render js, etc) then 
+        /// render js, etc) then creates and executes crawler
         /// </summary>
         public static async Task Crawl(CrawlConfigurationX configX, string uriToCrawl = "http://google.com")
         {

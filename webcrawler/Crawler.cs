@@ -1,3 +1,10 @@
+/* Web Crawler / Scraper
+ * Seth Tal, Juno Mayor, Alex Marozick
+ * 01.14.2021
+ * This file contains the main program execution pipeline for scraping web
+ * data from specified sources.
+*/
+
 #region using statements
 // .NET
 using System;
@@ -28,14 +35,18 @@ using MongoDB.Driver;
 
 namespace ScrapeAndCrawl
 {
+
 #region CMD arg Parser
 
+    /// <summary>
+    /// Object containing defined cmd args to parse for the Web Scraper tool
+    /// </summary>
     public class Options
     {
         [Option('f', "file", Required=false, HelpText="Text file containing list of websites to crawl.")]
         public string InputFile { get; set; }
 
-        [Option('s', "start", Required=true, HelpText="Starting URL to crawl from.")]
+        [Option('s', "start", Required=false, HelpText="Starting URL to crawl from.")]
         public string StartingUri { get; set; }
     }
 
@@ -44,11 +55,15 @@ namespace ScrapeAndCrawl
 #region Crawler Class
 
     /// <summary>
-    /// Main program container 
+    /// Seth Tal, Juno Mayor, Alex Marozick.
+    /// Command Line Web Scraper. Scrapes hardcoded data from a starting
+    /// uri or scrapes a list of websites written to a txt file.
     /// </summary>
     class Crawler
     {
         // PUBLIC CLASS MEMBERS
+
+        // will contain parsed arguement data from the command line
         static Options parsedArgs;
 
         // PRIVATE CLASS MEMBERS
@@ -74,15 +89,7 @@ namespace ScrapeAndCrawl
             // * PARSE COMMAND LINE ARGS ----------------------------------------------------------
             // Uses CommandLine to parse predefined command line args
             Parser.Default.ParseArguments<Options>(args)
-                .WithParsed<Options>(o =>
-                {
-                    if (o.StartingUri != null || o.StartingUri != "")
-                    {
-                        Log.Logger.Information("Starting Crawl From: " + o.StartingUri);
-                    }
-
-                    parsedArgs = o;
-                })
+                .WithParsed<Options>(ParseSuccessHandler)
                 .WithNotParsed<Options>(ParseErrorHandler);
 
             // "parsedArgs" static member contains parsed command line args
@@ -126,6 +133,25 @@ namespace ScrapeAndCrawl
         // ========================================================================================
         // ========================================================================================
 
+        /// <summary>
+        /// Handles parsed "options" if the Parser parses succesfully.
+        /// </summary>
+        /// <param name="options"> Contains the parsed arguement data. </param>
+        static void ParseSuccessHandler(Options options)
+        {
+            if (options.StartingUri != null || options.StartingUri != "")
+            {
+                Log.Logger.Information("Starting Crawl From: " + options.StartingUri);
+            }
+
+            // Store parsed args in static class reference defined above
+            parsedArgs = options;
+        }
+
+        /// <summary>
+        /// Error handler if Parser parses unsuccessfully.
+        /// </summary>
+        /// <param name="error"> IDK what this does yet. </param>
         static void ParseErrorHandler(IEnumerable<Error> error)
         {
             // ? If error handling args then hault execution of program
