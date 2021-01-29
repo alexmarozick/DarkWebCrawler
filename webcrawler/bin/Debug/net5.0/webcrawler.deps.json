@@ -12,7 +12,10 @@
           "AbotX": "2.1.8",
           "MongoDB.Bson": "2.11.6",
           "MongoDB.Driver": "2.11.6",
-          "MongoDB.Driver.Core": "2.11.6"
+          "MongoDB.Driver.Core": "2.11.6",
+          "Serilog": "2.10.0",
+          "Serilog.Sinks.Console": "3.1.1",
+          "Serilog.Sinks.File": "4.1.0"
         },
         "runtime": {
           "webcrawler.dll": {}
@@ -23,7 +26,7 @@
           "AngleSharp": "0.12.1",
           "Microsoft.CSharp": "4.7.0",
           "NRobotsCore": "1.1.2",
-          "Serilog": "2.8.0",
+          "Serilog": "2.10.0",
           "Serilog.Enrichers.Thread": "3.1.0",
           "Serilog.Sinks.Console": "3.1.1"
         },
@@ -333,20 +336,17 @@
       "runtime.ubuntu.14.04-x64.runtime.native.System.Security.Cryptography.OpenSsl/4.3.0": {},
       "runtime.ubuntu.16.04-x64.runtime.native.System.Security.Cryptography.OpenSsl/4.3.0": {},
       "runtime.ubuntu.16.10-x64.runtime.native.System.Security.Cryptography.OpenSsl/4.3.0": {},
-      "Serilog/2.8.0": {
-        "dependencies": {
-          "System.Collections.NonGeneric": "4.3.0"
-        },
+      "Serilog/2.10.0": {
         "runtime": {
-          "lib/netstandard2.0/Serilog.dll": {
+          "lib/netstandard2.1/Serilog.dll": {
             "assemblyVersion": "2.0.0.0",
-            "fileVersion": "2.8.0.0"
+            "fileVersion": "2.10.0.0"
           }
         }
       },
       "Serilog.Enrichers.Thread/3.1.0": {
         "dependencies": {
-          "Serilog": "2.8.0"
+          "Serilog": "2.10.0"
         },
         "runtime": {
           "lib/netstandard2.0/Serilog.Enrichers.Thread.dll": {
@@ -357,7 +357,7 @@
       },
       "Serilog.Sinks.Console/3.1.1": {
         "dependencies": {
-          "Serilog": "2.8.0",
+          "Serilog": "2.10.0",
           "System.Console": "4.3.0",
           "System.Runtime.InteropServices": "4.3.0",
           "System.Runtime.InteropServices.RuntimeInformation": "4.3.0"
@@ -366,6 +366,20 @@
           "lib/netcoreapp1.1/Serilog.Sinks.Console.dll": {
             "assemblyVersion": "3.1.1.0",
             "fileVersion": "3.1.1.0"
+          }
+        }
+      },
+      "Serilog.Sinks.File/4.1.0": {
+        "dependencies": {
+          "Serilog": "2.10.0",
+          "System.IO.FileSystem": "4.3.0",
+          "System.Text.Encoding.Extensions": "4.3.0",
+          "System.Threading.Timer": "4.3.0"
+        },
+        "runtime": {
+          "lib/netstandard2.0/Serilog.Sinks.File.dll": {
+            "assemblyVersion": "2.0.0.0",
+            "fileVersion": "4.1.0.0"
           }
         }
       },
@@ -405,16 +419,6 @@
           "System.Runtime.Extensions": "4.3.0",
           "System.Threading": "4.3.0",
           "System.Threading.Tasks": "4.3.0"
-        }
-      },
-      "System.Collections.NonGeneric/4.3.0": {
-        "dependencies": {
-          "System.Diagnostics.Debug": "4.3.0",
-          "System.Globalization": "4.3.0",
-          "System.Resources.ResourceManager": "4.3.0",
-          "System.Runtime": "4.3.0",
-          "System.Runtime.Extensions": "4.3.0",
-          "System.Threading": "4.3.0"
         }
       },
       "System.Configuration.ConfigurationManager/4.6.0": {
@@ -1404,12 +1408,12 @@
       "path": "runtime.ubuntu.16.10-x64.runtime.native.system.security.cryptography.openssl/4.3.0",
       "hashPath": "runtime.ubuntu.16.10-x64.runtime.native.system.security.cryptography.openssl.4.3.0.nupkg.sha512"
     },
-    "Serilog/2.8.0": {
+    "Serilog/2.10.0": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-zjuKXW5IQws43IHX7VY9nURsaCiBYh2kyJCWLJRSWrTsx/syBKHV8MibWe2A+QH3Er0AiwA+OJmO3DhFJDY1+A==",
-      "path": "serilog/2.8.0",
-      "hashPath": "serilog.2.8.0.nupkg.sha512"
+      "sha512": "sha512-+QX0hmf37a0/OZLxM3wL7V6/ADvC1XihXN4Kq/p6d8lCPfgkRdiuhbWlMaFjR9Av0dy5F0+MBeDmDdRZN/YwQA==",
+      "path": "serilog/2.10.0",
+      "hashPath": "serilog.2.10.0.nupkg.sha512"
     },
     "Serilog.Enrichers.Thread/3.1.0": {
       "type": "package",
@@ -1424,6 +1428,13 @@
       "sha512": "sha512-56mI5AqvyF/i/c2451nvV71kq370XOCE4Uu5qiaJ295sOhMb9q3BWwG7mWLOVSnmpWiq0SBT3SXfgRXGNP6vzA==",
       "path": "serilog.sinks.console/3.1.1",
       "hashPath": "serilog.sinks.console.3.1.1.nupkg.sha512"
+    },
+    "Serilog.Sinks.File/4.1.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-U0b34w+ZikbqWEZ3ui7BdzxY/19zwrdhLtI3o6tfmLdD3oXxg7n2TZJjwCCTlKPgRuYic9CBWfrZevbb70mTaw==",
+      "path": "serilog.sinks.file/4.1.0",
+      "hashPath": "serilog.sinks.file.4.1.0.nupkg.sha512"
     },
     "SharpCompress/0.23.0": {
       "type": "package",
@@ -1459,13 +1470,6 @@
       "sha512": "sha512-ztl69Xp0Y/UXCL+3v3tEU+lIy+bvjKNUmopn1wep/a291pVPK7dxBd6T7WnlQqRog+d1a/hSsgRsmFnIBKTPLQ==",
       "path": "system.collections.concurrent/4.3.0",
       "hashPath": "system.collections.concurrent.4.3.0.nupkg.sha512"
-    },
-    "System.Collections.NonGeneric/4.3.0": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-prtjIEMhGUnQq6RnPEYLpFt8AtLbp9yq2zxOSrY7KJJZrw25Fi97IzBqY7iqssbM61Ek5b8f3MG/sG1N2sN5KA==",
-      "path": "system.collections.nongeneric/4.3.0",
-      "hashPath": "system.collections.nongeneric.4.3.0.nupkg.sha512"
     },
     "System.Configuration.ConfigurationManager/4.6.0": {
       "type": "package",

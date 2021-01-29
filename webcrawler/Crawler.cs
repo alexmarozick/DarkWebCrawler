@@ -27,36 +27,33 @@ namespace ScrapeAndCrawl
 #region Crawler Class
 
     /// <summary>
-    /// Simple webcrawler demo as shown in Abot repo. Run using: dotnet run "urlToCrawlFrom".
-    /// By default it will crawl the Google.com homepage.
+    /// Main program container 
     /// </summary>
     class Crawler
     {
+        /// <param name="args"> Command line arguements passed to executable. </param>
         static async Task Main(string[] args)
         {
             // "Log" from Serilog namespace
+            // Configure the logging tool for nice command line prints/formats
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Information()
                 .WriteTo.Console()
+                .WriteTo.File("./log/log.txt")
                 .CreateLogger();
 
             Log.Logger.Information("Minimal Crawler Demo start...");
 
-            // If a url is not provided then use default url
-            // if (args.Length == 0)
-            // {
-            //     await SimpleCrawler();
-            //     await SinglePageRequest();
-            // }
-            // else // use provided url passed in as an arg
-            // {
-            //     await SimpleCrawler(args[0]);
-            //     await SinglePageRequest(args[0]);
-            // }
+            CrawlConfigurationX crawlConfig = new CrawlConfigurationX
+            {
+                MaxPagesToCrawl = 10,                             // Number of sites to crawl
+                IsJavascriptRenderingEnabled = true,              // Should crawler render JS?
+                JavascriptRenderingWaitTimeInMilliseconds = 3000, // How long to wait for js to process 
+                MaxConcurrentSiteCrawls = 1                      // Only crawl a single site at a time
+                // MaxConcurrentThreads = 8                         // Logical processor count to avoid cpu thrashing
+            };
 
-            DataScraper ds = new DataScraper();
-
-            await DataScraper.CrawlSingleSite(args[0]);
+            await DataScraper.Crawl(crawlConfig, args[0]);
 
             if (DataScraper.dataDocuments.Count > 0)
             {
@@ -77,7 +74,7 @@ namespace ScrapeAndCrawl
         /// <param name="uriToCrawl"> String representing the url to start crawling from </param>
         private static async Task SimpleCrawler(string uriToCrawl = "http://google.com")
         {   
-            #region X Crawler
+#region X Crawler
             
             Log.Logger.Information("Running new X crawler...\n");
             
@@ -104,9 +101,9 @@ namespace ScrapeAndCrawl
 
             var crawlerXTask = await crawlerX.CrawlAsync(new Uri(uriToCrawl));
             
-            #endregion
+#endregion
 
-            #region AbotX Crawler Demo (from github)
+#region AbotX Crawler Demo (from github)
 
             var pathToPhantomJSExeFolder = @"C:\Users\Setht\.nuget\packages\phantomjs\2.1.1\tools\phantomjs";
             var config = new CrawlConfigurationX
@@ -127,7 +124,7 @@ namespace ScrapeAndCrawl
                 await crawler.CrawlAsync(new Uri(uriToCrawl));
             }
 
-            #endregion
+#endregion
         }
         
         /// <summary>
