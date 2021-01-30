@@ -82,7 +82,7 @@ namespace ScrapeAndCrawl
         /// Will parse each website and store data in a Bson Document.
         /// </summary>
         private static void PageCrawlHandler(object sender, PageCrawlCompletedArgs e)
-        {
+        { 
             var httpStatus = e.CrawledPage.HttpResponseMessage.StatusCode;
             var rawPageText = e.CrawledPage.Content.Text;
     

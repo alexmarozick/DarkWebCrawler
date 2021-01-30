@@ -8,6 +8,7 @@
 #region using statements
 // .NET
 using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -43,7 +44,7 @@ namespace ScrapeAndCrawl
     /// </summary>
     public class Options
     {
-        [Option('f', "file", Required=false, HelpText="Text file containing list of websites to crawl.")]
+        [Option("file", Required=false, HelpText="Text file containing list of websites to crawl.")]
         public string InputFile { get; set; }
 
         [Option('s', "start", Required=false, HelpText="Starting URL to crawl from.")]
@@ -97,7 +98,7 @@ namespace ScrapeAndCrawl
 
             // * SETUP AND EXECUTE CRAWLER ========================================================
             // Setup Crawler configuration
-            CrawlConfigurationX crawlConfig = new CrawlConfigurationX
+            CrawlConfigurationX crawlConfig_RecursiveCrawl = new CrawlConfigurationX
             {
                 MaxPagesToCrawl = 10,                             // Number of sites to crawl
                 IsJavascriptRenderingEnabled = true,              // Should crawler render JS?
@@ -106,8 +107,34 @@ namespace ScrapeAndCrawl
                 // ? MaxConcurrentThreads = 8                         // Logical processor count to avoid cpu thrashing
             };
 
-            // Crawl
-            await DataScraper.Crawl(crawlConfig, parsedArgs.StartingUri);
+            CrawlConfigurationX crawlConfig_SingleSiteCrawl = new CrawlConfigurationX
+            {
+                MaxPagesToCrawl = 1,                              // Number of sites to crawl
+                IsJavascriptRenderingEnabled = true,              // Should crawler render JS?
+                JavascriptRenderingWaitTimeInMilliseconds = 3000, // How long to wait for js to process 
+                MaxConcurrentSiteCrawls = 1                       // Only crawl a single site at a time
+                // ? MaxConcurrentThreads = 8                     // Logical processor count to avoid cpu thrashing
+            };
+
+            // ! Log.Logger.Information("TEST: " + parsedArgs.InputFile);
+
+            if (parsedArgs.InputFile == null)
+            {
+                // Crawl
+                await DataScraper.Crawl(crawlConfig_RecursiveCrawl, parsedArgs.StartingUri);
+            }
+            else
+            {
+                string inputFilePath = @parsedArgs.InputFile;
+
+                var sitesToCrawl = GenerateSiteList(inputFilePath);
+
+                for (int i = 0; i < sitesToCrawl.Count; i++)
+                {
+                    // Crawl
+                    await DataScraper.Crawl(crawlConfig_SingleSiteCrawl, sitesToCrawl[i]);
+                }
+            }
 
             // Check if cached Data
             if (DataScraper.dataDocuments.Count > 0)
@@ -117,6 +144,9 @@ namespace ScrapeAndCrawl
                 {
                     // ! Log.Logger.Information(DataScraper.dataDocuments[i].ToJson());
                     // TODO mongoDB add document ( DataScraper.dataDocuments[i])
+                    // TODO determine what collection to place document in -- based on cli flag? 
+                    //if server info 
+                        //call server info parse function 
                 }
             }
 
@@ -156,6 +186,33 @@ namespace ScrapeAndCrawl
         {
             // ? If error handling args then hault execution of program
             System.Environment.Exit(0);
+        }
+
+        /// <summary>
+        /// Generates a list of website names to crawl from
+        /// </summary>
+        static List<string> GenerateSiteList(string fileName)
+        {
+            List<string> result = new List<string>();
+
+            if (!File.Exists(fileName))
+            {
+                throw new InvalidOperationException("File at " + fileName + " does not exist.");
+            }
+            else
+            {
+                using (StreamReader sr = File.OpenText(fileName))
+                {
+                    string line;
+                    while ((line = sr.ReadLine()) != null)
+                    {
+                        Console.WriteLine("Adding " + line + " to list of files to crawl from...");
+                        result.Add(line);
+                    }
+                }
+            }
+
+            return result;
         }
 
         // ========================================================================================
