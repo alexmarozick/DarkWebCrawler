@@ -11,6 +11,7 @@
           "Abot": "2.0.67",
           "AbotX": "2.1.8",
           "CommandLineParser": "2.8.0",
+          "Knapcode.TorSharp": "2.5.0",
           "MongoDB.Bson": "2.11.6",
           "MongoDB.Driver": "2.11.6",
           "MongoDB.Driver.Core": "2.11.6",
@@ -95,6 +96,18 @@
           }
         }
       },
+      "Knapcode.TorSharp/2.5.0": {
+        "dependencies": {
+          "System.ServiceModel.Syndication": "4.5.0",
+          "SharpCompress": "0.24.0"
+        },
+        "runtime": {
+          "lib/netstandard2.0/Knapcode.TorSharp.dll": {
+            "assemblyVersion": "2.5.0.0",
+            "fileVersion": "2.5.0.0"
+          }
+        }
+      },
       "MathNet.Numerics/4.8.1": {
         "runtime": {
           "lib/netstandard2.0/MathNet.Numerics.dll": {
@@ -164,7 +177,7 @@
           "DnsClient": "1.3.1",
           "MongoDB.Bson": "2.11.6",
           "MongoDB.Libmongocrypt": "1.0.0",
-          "SharpCompress": "0.23.0",
+          "SharpCompress": "0.24.0",
           "System.Buffers": "4.4.0"
         },
         "runtime": {
@@ -392,14 +405,14 @@
           }
         }
       },
-      "SharpCompress/0.23.0": {
+      "SharpCompress/0.24.0": {
         "dependencies": {
           "System.Text.Encoding.CodePages": "4.5.1"
         },
         "runtime": {
           "lib/netstandard2.0/SharpCompress.dll": {
-            "assemblyVersion": "0.23.0.0",
-            "fileVersion": "0.23.0.0"
+            "assemblyVersion": "0.24.0.0",
+            "fileVersion": "0.24.0.0"
           }
         }
       },
@@ -1025,6 +1038,14 @@
         }
       },
       "System.Security.Principal.Windows/4.6.0": {},
+      "System.ServiceModel.Syndication/4.5.0": {
+        "runtime": {
+          "lib/netstandard2.0/System.ServiceModel.Syndication.dll": {
+            "assemblyVersion": "4.0.0.0",
+            "fileVersion": "4.6.26515.6"
+          }
+        }
+      },
       "System.Text.Encoding/4.3.0": {
         "dependencies": {
           "Microsoft.NETCore.Platforms": "3.0.0",
@@ -1192,6 +1213,13 @@
       "sha512": "sha512-b9XczgqSjs3dd+OlV799jn+LXxdfirln1q36GKjs3QwWBhjhgIvgHLEG5s2VrBLcP4ogQjtA0PZ5+AmRJ35Vhg==",
       "path": "dnsclient/1.3.1",
       "hashPath": "dnsclient.1.3.1.nupkg.sha512"
+    },
+    "Knapcode.TorSharp/2.5.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-i0LCxjvPcPhiRWyxUVZ5lZRs5pyCaXmXPeewxpvnAk/llgvmK2th5u3XwHdBsm1g5av433KDQKQSBuqbVbIqyA==",
+      "path": "knapcode.torsharp/2.5.0",
+      "hashPath": "knapcode.torsharp.2.5.0.nupkg.sha512"
     },
     "MathNet.Numerics/4.8.1": {
       "type": "package",
@@ -1452,12 +1480,12 @@
       "path": "serilog.sinks.file/4.1.0",
       "hashPath": "serilog.sinks.file.4.1.0.nupkg.sha512"
     },
-    "SharpCompress/0.23.0": {
+    "SharpCompress/0.24.0": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-HBbT47JHvNrsZX2dTBzUBOSzBt+EmIRGLIBkbxcP6Jef7DB4eFWQX5iHWV3Nj7hABFPCjISrZ8s0z72nF2zFHQ==",
-      "path": "sharpcompress/0.23.0",
-      "hashPath": "sharpcompress.0.23.0.nupkg.sha512"
+      "sha512": "sha512-3zpUOie9xRrEc6o33Z546rseYttnoxVDMC3wsGYsUa5wXas3wTG96v+dHxcGMCta/Kid9jFIl8/Lc/GbNpKZVA==",
+      "path": "sharpcompress/0.24.0",
+      "hashPath": "sharpcompress.0.24.0.nupkg.sha512"
     },
     "System.AppContext/4.3.0": {
       "type": "package",
@@ -1850,6 +1878,13 @@
       "sha512": "sha512-Mdukseovp0YIGaz16FMH6nbfgZkrCFOJbtXQptv0aeBO9h775Ilb9+TDwLVTKikoW7y7CY7lpoXl9zmZ5G3ndA==",
       "path": "system.security.principal.windows/4.6.0",
       "hashPath": "system.security.principal.windows.4.6.0.nupkg.sha512"
+    },
+    "System.ServiceModel.Syndication/4.5.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-Tm3vhsv0PnrU7avYEP6vSQiqr+Dhe7N8NPbnInWMhSSmIMmutyfSg349pqnv0JboK3l/9eHNiX4KD5NMUsvhmQ==",
+      "path": "system.servicemodel.syndication/4.5.0",
+      "hashPath": "system.servicemodel.syndication.4.5.0.nupkg.sha512"
     },
     "System.Text.Encoding/4.3.0": {
       "type": "package",

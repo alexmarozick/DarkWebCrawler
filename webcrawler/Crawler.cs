@@ -11,6 +11,8 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Net;
+using System.Net.Http;
 
 // Abot2
 using Abot2.Core;      // Core components <change this comment later this is a bad description>
@@ -31,7 +33,12 @@ using CommandLine;
 //mongoDB
 using MongoDB.Bson;
 using MongoDB.Driver;
+
+//torSharp 
+using Knapcode.TorSharp;
 #endregion
+
+
 
 
 namespace ScrapeAndCrawl
@@ -63,6 +70,7 @@ namespace ScrapeAndCrawl
     class Crawler
     {
         // PUBLIC CLASS MEMBERS
+        // configure
 
         // will contain parsed arguement data from the command line
         static Options parsedArgs;
@@ -95,65 +103,116 @@ namespace ScrapeAndCrawl
 
             // "parsedArgs" static member contains parsed command line args
             // * ----------------------------------------------------------------------------------
-
-            // * SETUP AND EXECUTE CRAWLER ========================================================
-            // Setup Crawler configuration
-            CrawlConfigurationX crawlConfig_RecursiveCrawl = new CrawlConfigurationX
+            //* INIT TORSHARP --------------------------------------------------------------------- 
+            var settings = new TorSharpSettings
             {
-                MaxPagesToCrawl = 10,                             // Number of sites to crawl
-                IsJavascriptRenderingEnabled = true,              // Should crawler render JS?
-                JavascriptRenderingWaitTimeInMilliseconds = 3000, // How long to wait for js to process 
-                MaxConcurrentSiteCrawls = 1                      // Only crawl a single site at a time
-                // ? MaxConcurrentThreads = 8                         // Logical processor count to avoid cpu thrashing
+                ZippedToolsDirectory = Path.Combine(Path.GetTempPath(), "TorZipped"),
+                ExtractedToolsDirectory = Path.Combine(Path.GetTempPath(), "TorExtracted"),
+                PrivoxySettings = { Port = 1337 },
+                TorSettings =
+                {
+                    SocksPort = 1338,
+                    ControlPort = 1339,
+                    ControlPassword = "foobar",
+                },
             };
 
-            CrawlConfigurationX crawlConfig_SingleSiteCrawl = new CrawlConfigurationX
+            // download tools
+            using (HttpClient hc = new HttpClient())
             {
-                MaxPagesToCrawl = 1,                              // Number of sites to crawl
-                IsJavascriptRenderingEnabled = true,              // Should crawler render JS?
-                JavascriptRenderingWaitTimeInMilliseconds = 3000, // How long to wait for js to process 
-                MaxConcurrentSiteCrawls = 1                       // Only crawl a single site at a time
-                // ? MaxConcurrentThreads = 8                     // Logical processor count to avoid cpu thrashing
-            };
-
-            // ! Log.Logger.Information("TEST: " + parsedArgs.InputFile);
-
-            if (parsedArgs.InputFile == null)
-            {
-                // Crawl
-                await DataScraper.Crawl(crawlConfig_RecursiveCrawl, parsedArgs.StartingUri);
-            }
-            else
-            {
-                string inputFilePath = @parsedArgs.InputFile;
-
-                var sitesToCrawl = GenerateSiteList(inputFilePath);
-
-                for (int i = 0; i < sitesToCrawl.Count; i++)
+                var fetcher = new TorSharpToolFetcher(settings, hc);
+                var updates = await fetcher.CheckForUpdatesAsync();
+                Console.WriteLine($"Current Privoxy: {updates.Privoxy.LocalVersion?.ToString() ?? "(none)"}");
+                Console.WriteLine($" Latest Privoxy: {updates.Privoxy.LatestDownload.Version}");
+                Console.WriteLine();
+                Console.WriteLine($"Current Tor: {updates.Tor.LocalVersion?.ToString() ?? "(none)"}");
+                Console.WriteLine($" Latest Tor: {updates.Tor.LatestDownload.Version}");
+                Console.WriteLine();
+                if (updates.HasUpdate)
                 {
-                    // Crawl
-                    await DataScraper.Crawl(crawlConfig_SingleSiteCrawl, sitesToCrawl[i]);
+                    await fetcher.FetchAsync(updates);
                 }
             }
-
-            // Check if cached Data
-            if (DataScraper.dataDocuments.Count > 0)
+            using (var proxy = new TorSharpProxy(settings))
             {
-                // Fetch data
-                for (int i = 0; i < DataScraper.dataDocuments.Count; i++)
+                var handler = new HttpClientHandler
                 {
-                    // ! Log.Logger.Information(DataScraper.dataDocuments[i].ToJson());
-                    // TODO mongoDB add document ( DataScraper.dataDocuments[i])
-                    // TODO determine what collection to place document in -- based on cli flag? 
-                    //if server info 
-                        //call server info parse function 
-                }
-            }
+                    Proxy = new WebProxy(new Uri("http://localhost:" + settings.PrivoxySettings.Port))
+                };
 
-            // var client = new MongoClient("mongodb+srv://<username>:<password>@<cluster-address>/test?w=majority");
-            // var database = client.GetDatabase("test");
+                // using (handler)
+                using (var httpClient = new HttpClient(handler))
+                {
+                    var waiting = true;
+                    while(waiting) {
+                        await proxy.ConfigureAndStartAsync();
+                        waiting = false;
+                    }
+                    
+                    // * SETUP AND EXECUTE CRAWLER ========================================================
+                    // Setup Crawler configuration
+                    CrawlConfigurationX crawlConfig_RecursiveCrawl = new CrawlConfigurationX
+                    {
+                        MaxPagesToCrawl = 10,                             // Number of sites to crawl
+                        IsJavascriptRenderingEnabled = true,              // Should crawler render JS?
+                        JavascriptRenderingWaitTimeInMilliseconds = 3000, // How long to wait for js to process 
+                        MaxConcurrentSiteCrawls = 1                       // Only crawl a single site at a time
+                        // ? MaxConcurrentThreads = 8                     // Logical processor count to avoid cpu thrashing
+                    };
+
+                    CrawlConfigurationX crawlConfig_SingleSiteCrawl = new CrawlConfigurationX
+                    {
+                        MaxPagesToCrawl = 1,                              // Number of sites to crawl
+                        IsJavascriptRenderingEnabled = true,              // Should crawler render JS?
+                        JavascriptRenderingWaitTimeInMilliseconds = 3000, // How long to wait for js to process 
+                        MaxConcurrentSiteCrawls = 1                       // Only crawl a single site at a time
+                        // ? MaxConcurrentThreads = 8                     // Logical processor count to avoid cpu thrashing
+                    };
+
+                    // ! Log.Logger.Information("TEST: " + parsedArgs.InputFile);
+
+                    if (parsedArgs.InputFile == null)
+                    {
+                        // Crawl
+                        await DataScraper.Crawl(crawlConfig_RecursiveCrawl, handler, parsedArgs.StartingUri);
+                    }
+                    else
+                    {
+                        string inputFilePath = @parsedArgs.InputFile;
+
+                        var sitesToCrawl = GenerateSiteList(inputFilePath);
+
+                        for (int i = 0; i < sitesToCrawl.Count; i++)
+                        {
+                            // Crawl
+                            await DataScraper.Crawl(crawlConfig_SingleSiteCrawl, handler, sitesToCrawl[i]);
+                        }
+                    }
+
+                    // Check if cached Data
+                    if (DataScraper.dataDocuments.Count > 0)
+                    {
+                        // Fetch data
+                        for (int i = 0; i < DataScraper.dataDocuments.Count; i++)
+                        {
+                            Log.Logger.Information(DataScraper.dataDocuments[i].ToJson());
+                            // TODO mongoDB add document ( DataScraper.dataDocuments[i])
+                            // TODO determine what collection to place document in -- based on cli flag? 
+                            //if server info 
+                                //call server info parse function 
+                        }
+                    }
+                }
+
+                    // var client = new MongoClient("mongodb+srv://<username>:<password>@<cluster-address>/test?w=majority");
+                    // var database = client.GetDatabase("test");
+                    //Stop Torsharp
+                    proxy.Stop();
+            }
             // * ==================================================================================
         }
+    
+    
         // ========================================================================================
         // ========================================================================================
         // ========================================================================================
@@ -214,10 +273,9 @@ namespace ScrapeAndCrawl
 
             return result;
         }
-
         // ========================================================================================
         // ========================================================================================
         // ========================================================================================
     }
-#endregion
 }
+#endregion

@@ -1,8 +1,10 @@
 #region Using Statements
 // .NET
 using System;
+using System.Net;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Net.Http;
 
 // Abot2
 using Abot2.Core;      // Core components <change this comment later this is a bad description>
@@ -10,6 +12,7 @@ using Abot2.Crawler;   // Namespace where Crawler objects are defined
 using Abot2.Poco;      //
 
 // AbotX2
+using AbotX2.Core;
 using AbotX2.Crawler;  //
 using AbotX2.Parallel; //
 using AbotX2.Poco;     //
@@ -19,6 +22,10 @@ using Serilog;         // Serilog provides diagnostic logging to files
 
 //BSON for mongo
 using MongoDB.Bson;
+
+//torSharp 
+using Knapcode.TorSharp;
+
 #endregion
 
 
@@ -50,12 +57,18 @@ namespace ScrapeAndCrawl
         /// (i.e. specify how many sites to crawl, whether or not to 
         /// render js, etc) then creates and executes crawler
         /// </summary>
-        public static async Task Crawl(CrawlConfigurationX configX, string uriToCrawl = "http://google.com")
+        public static async Task Crawl(CrawlConfigurationX configX, HttpClientHandler handler, string uriToCrawl = "http://google.com")
         {
             // 'using' sets up scope for crawlerX object to be used
             // disposes of object at end of scope. (i.e. close-curly-brace)
             // I saw this used in the github example. Maybe its good practice??
-            using (var crawlerX = new CrawlerX(configX))
+
+            ImplementationContainer impContainer = new ImplementationContainer();
+            impContainer.PageRequester = new ProxyPageRequester(handler, configX, new WebContentExtractor(), null);
+
+            ImplementationOverride impOverride = new ImplementationOverride(configX, impContainer); 
+
+            using (var crawlerX = new CrawlerX(configX, impOverride))
             {
                 crawlerX.ShouldRenderPageJavascript((CrawledPage, CrawlContext) =>
                 {
@@ -85,7 +98,7 @@ namespace ScrapeAndCrawl
         { 
             var httpStatus = e.CrawledPage.HttpResponseMessage.StatusCode;
             var rawPageText = e.CrawledPage.Content.Text;
-    
+            Log.Logger.Information(rawPageText);
             // TODO:
             // * pase page content into data we want...
 
@@ -104,4 +117,35 @@ namespace ScrapeAndCrawl
         }
 #endregion
     }
+
+
+    //Extend the PageRequester class and override the method that creates the HttpWebRequest
+    public class ProxyPageRequester : PageRequester
+    {
+        private readonly CrawlConfiguration _config; 
+        private readonly IWebContentExtractor _contentExtractor;
+        private readonly CookieContainer _cookieContainer = new CookieContainer();
+        private HttpClientHandler _httpClientHandler;
+        private HttpClient _httpClient;
+        private  HttpClientHandler _torHandler; 
+
+        public ProxyPageRequester(HttpClientHandler torHandler, CrawlConfiguration config, IWebContentExtractor contentExtractor = null, HttpClient httpClient = null) : base(config, contentExtractor, httpClient)
+        {
+            _config = config;
+            _contentExtractor = contentExtractor;
+
+            _torHandler = torHandler;
+        }
+
+        protected override HttpClientHandler BuildHttpClientHandler(Uri rootUri)
+        {
+
+            return _torHandler;
+
+            // HttpClientHandler request = base.BuildHttpClientHandler(rootUri);
+            // request.Proxy = new WebProxy(_config.ConfigurationExtensions["TorProxy"]);
+            // return request;
+        }
+    }
+
 }
