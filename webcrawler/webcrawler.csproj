@@ -14,5 +14,6 @@
     <PackageReference Include="Serilog.Sinks.File" Version="*"/>
     <PackageReference Include="CommandLineParser" Version="2.8.0"/>
     <PackageReference Include="Knapcode.TorSharp" Version="2.5.0"/>
+    <PackageReference Include="HtmlAgilityPack" Version="1.11.30"/>
   </ItemGroup>
 </Project>

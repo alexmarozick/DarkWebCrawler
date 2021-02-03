@@ -26,6 +26,9 @@ using MongoDB.Bson;
 //torSharp 
 using Knapcode.TorSharp;
 
+//htmlAgilityParser
+using HtmlAgilityPack;
+
 #endregion
 
 
@@ -98,23 +101,50 @@ namespace ScrapeAndCrawl
         { 
             var httpStatus = e.CrawledPage.HttpResponseMessage.StatusCode;
             var rawPageText = e.CrawledPage.Content.Text;
-            Log.Logger.Information(rawPageText);
+            // Log.Logger.Information(rawPageText);
             // TODO:
             // * pase page content into data we want...
 
             // ? add private parsing methods to class and use them here
 
             // * Convert to BSON Doc and add to dataDocuments
+            ParseRawHTML(rawPageText);
             var bson = new BsonDocument
             {
                 {"name", "test page"},
                 {"raw", rawPageText}
             };
-
+            
             dataDocuments.Add(bson);
+            //label, option, mark, 
 
             // ? Log.Logger.Information(rawPageText);
         }
+
+
+        private static string[] ParseRawHTML(string rawHTML){
+
+            string[] parsed = {"hello"};
+
+            // while(rawHTML.Length > 1){
+            //     int pFrom = rawHTML.IndexOf(">") + 1;
+            //     int pTo = rawHTML.IndexOf("<");
+
+            // }
+            var htmlDoc = new HtmlDocument();
+            htmlDoc.LoadHtml(rawHTML);
+
+            var node = htmlDoc.DocumentNode.SelectSingleNode("//body");
+
+            foreach (var nNode in node.Descendants())
+            {
+                if (nNode.NodeType == HtmlNodeType.Text)
+                {
+                    Log.Logger.Debug(nNode.InnerText);
+                }
+            }
+            return parsed;
+        } 
 #endregion
     }
 

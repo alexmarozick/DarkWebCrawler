@@ -154,10 +154,11 @@ namespace ScrapeAndCrawl
                     // Setup Crawler configuration
                     CrawlConfigurationX crawlConfig_RecursiveCrawl = new CrawlConfigurationX
                     {
-                        MaxPagesToCrawl = 10,                             // Number of sites to crawl
+                        MaxPagesToCrawl = 2,                             // Number of sites to crawl
                         IsJavascriptRenderingEnabled = true,              // Should crawler render JS?
-                        JavascriptRenderingWaitTimeInMilliseconds = 3000, // How long to wait for js to process 
-                        MaxConcurrentSiteCrawls = 1                       // Only crawl a single site at a time
+                        JavascriptRenderingWaitTimeInMilliseconds = 10000, // How long to wait for js to process 
+                        MaxConcurrentSiteCrawls = 1,                      // Only crawl a single site at a time
+                        MaxRetryCount = 3
                         // ? MaxConcurrentThreads = 8                     // Logical processor count to avoid cpu thrashing
                     };
 
@@ -174,7 +175,7 @@ namespace ScrapeAndCrawl
 
                     if (parsedArgs.InputFile == null)
                     {
-                        // Crawl
+                        // THIS IS -S
                         await DataScraper.Crawl(crawlConfig_RecursiveCrawl, handler, parsedArgs.StartingUri);
                     }
                     else
@@ -186,7 +187,7 @@ namespace ScrapeAndCrawl
                         for (int i = 0; i < sitesToCrawl.Count; i++)
                         {
                             // Crawl
-                            await DataScraper.Crawl(crawlConfig_SingleSiteCrawl, handler, sitesToCrawl[i]);
+                            await DataScraper.Crawl(crawlConfig_RecursiveCrawl, handler, sitesToCrawl[i]);
                         }
                     }
 
