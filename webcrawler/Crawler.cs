@@ -87,7 +87,7 @@ namespace ScrapeAndCrawl
             // "Log" from Serilog namespace
             // Configure the logging tool for nice command line prints/formats
             Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Information()
+                .MinimumLevel.Debug()
                 .WriteTo.Console()
                 .WriteTo.File("./log/log.txt")
                 .CreateLogger();
@@ -145,6 +145,7 @@ namespace ScrapeAndCrawl
                 {
                     var waiting = true;
                     while(waiting) {
+                        //block untill we wait for TorSharp Proxy to be configured
                         await proxy.ConfigureAndStartAsync();
                         waiting = false;
                     }
