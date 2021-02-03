@@ -5,7 +5,7 @@ using System.Net;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Net.Http;
-
+using System.Linq;
 // Abot2
 using Abot2.Core;      // Core components <change this comment later this is a bad description>
 using Abot2.Crawler;   // Namespace where Crawler objects are defined
@@ -25,6 +25,9 @@ using MongoDB.Bson;
 
 //torSharp 
 using Knapcode.TorSharp;
+
+//regex
+using System.Text.RegularExpressions;
 
 //htmlAgilityParser
 using HtmlAgilityPack;
@@ -108,7 +111,12 @@ namespace ScrapeAndCrawl
             // ? add private parsing methods to class and use them here
 
             // * Convert to BSON Doc and add to dataDocuments
-            ParseRawHTML(rawPageText);
+            var parsedText = ParseRawHTML(rawPageText);
+            //TODO: if word in location list add to counter dict
+            foreach(var i in parsedText){
+                Log.Logger.Debug(i);
+
+            }
             var bson = new BsonDocument
             {
                 {"name", "test page"},
@@ -122,25 +130,28 @@ namespace ScrapeAndCrawl
         }
 
 
-        private static string[] ParseRawHTML(string rawHTML){
+        private static List<string> ParseRawHTML(string rawHTML){
+            List<string> parsed = new List<string>();
 
-            string[] parsed = {"hello"};
-
-            // while(rawHTML.Length > 1){
-            //     int pFrom = rawHTML.IndexOf(">") + 1;
-            //     int pTo = rawHTML.IndexOf("<");
-
-            // }
             var htmlDoc = new HtmlDocument();
             htmlDoc.LoadHtml(rawHTML);
-
+            var unwantedNodes = htmlDoc.DocumentNode.SelectNodes("//form");
+            foreach (var n in unwantedNodes)
+            {
+                n.RemoveAllChildren();
+            }
+            // unwantedNodes.Insert(htmlDoc.DocumentNode.)
             var node = htmlDoc.DocumentNode.SelectSingleNode("//body");
-
             foreach (var nNode in node.Descendants())
             {
-                if (nNode.NodeType == HtmlNodeType.Text)
+                if (!unwantedNodes.Contains(nNode) && (nNode.NodeType == HtmlNodeType.Text))
                 {
-                    Log.Logger.Debug(nNode.InnerText);
+                    String nodeText = nNode.InnerText;
+                    if (nodeText.Any( x => char.IsLetter(x)))
+                    {
+                        parsed.Add(nNode.InnerText);
+                    }
+                    
                 }
             }
             return parsed;
