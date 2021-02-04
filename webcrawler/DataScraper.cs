@@ -1,6 +1,7 @@
 #region Using Statements
 // .NET
 using System;
+using System.IO;
 using System.Net;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -14,7 +15,6 @@ using Abot2.Poco;      //
 // AbotX2
 using AbotX2.Core;
 using AbotX2.Crawler;  //
-using AbotX2.Parallel; //
 using AbotX2.Poco;     //
 
 // Logger
@@ -24,10 +24,10 @@ using Serilog;         // Serilog provides diagnostic logging to files
 using MongoDB.Bson;
 
 //torSharp 
-using Knapcode.TorSharp;
+// using Knapcode.TorSharp;
 
 //regex
-using System.Text.RegularExpressions;
+// using System.Text.RegularExpressions;
 
 //htmlAgilityParser
 using HtmlAgilityPack;
@@ -37,6 +37,12 @@ using HtmlAgilityPack;
 
 namespace ScrapeAndCrawl
 {
+
+    public static class Constants
+    {
+        public static string PlaceNamesTXT = "./data_lists/place_names.txt";
+        public static string UKUSPlaceNamesTXT = "./data_lists/uk_us_cities.txt";
+    }
 
     /// <summary>
     /// Utilizing AbotX (for js rendering) this object scrapes specified
@@ -112,11 +118,14 @@ namespace ScrapeAndCrawl
 
             // * Convert to BSON Doc and add to dataDocuments
             var parsedText = ParseRawHTML(rawPageText);
-            //TODO: if word in location list add to counter dict
-            foreach(var i in parsedText){
-                Log.Logger.Debug(i);
 
-            }
+            //TODO: if word in location list add to counter dict
+            ParserWordCheck(parsedText, Constants.PlaceNamesTXT);
+
+            // ? foreach(var i in parsedText){
+            // ?     Log.Logger.Debug(i);
+            // ? }
+
             var bson = new BsonDocument
             {
                 {"name", "test page"},
@@ -125,37 +134,115 @@ namespace ScrapeAndCrawl
             
             dataDocuments.Add(bson);
             //label, option, mark, 
-
-            // ? Log.Logger.Information(rawPageText);
         }
 
-
-        private static List<string> ParseRawHTML(string rawHTML){
+        private static List<string> ParseRawHTML(string rawHTML)
+        {
             List<string> parsed = new List<string>();
 
             var htmlDoc = new HtmlDocument();
             htmlDoc.LoadHtml(rawHTML);
             var unwantedNodes = htmlDoc.DocumentNode.SelectNodes("//form");
-            foreach (var n in unwantedNodes)
+
+            if (unwantedNodes != null)
             {
-                n.RemoveAllChildren();
+                foreach (var n in unwantedNodes)
+                {
+                    n.RemoveAllChildren();
+                }
             }
+
             // unwantedNodes.Insert(htmlDoc.DocumentNode.)
             var node = htmlDoc.DocumentNode.SelectSingleNode("//body");
             foreach (var nNode in node.Descendants())
             {
-                if (!unwantedNodes.Contains(nNode) && (nNode.NodeType == HtmlNodeType.Text))
+                if (nNode.NodeType == HtmlNodeType.Text)
                 {
-                    String nodeText = nNode.InnerText;
-                    if (nodeText.Any( x => char.IsLetter(x)))
+                    if (unwantedNodes == null)
                     {
-                        parsed.Add(nNode.InnerText);
+                        String nodeText = nNode.InnerText;
+                        if (nodeText.Any( x => char.IsLetter(x)))
+                        {
+                            parsed.Add(nNode.InnerText);
+                        }
+                    }
+                    else
+                    {
+                        if (!unwantedNodes.Contains(nNode))
+                        {
+                            String nodeText = nNode.InnerText;
+                            if (nodeText.Any( x => char.IsLetter(x)))
+                            {
+                                parsed.Add(nNode.InnerText);
+                            }   
+                        }
                     }
                     
                 }
             }
             return parsed;
-        } 
+        }
+
+        /// <summary>
+        /// This is an O(N^3) algorithm for counting number of occurances of certain keywords
+        /// </summary>
+        /// <returns> nothing currently </returns>
+        private static void ParserWordCheck(List<string> parsedText, string keywordsFileLocation)
+        {
+            // Create a Hashset of keywords to check against where ...
+            // * each key contains only the chars of the keyword
+            // * each key is NOT null or empty
+            HashSet<string> keywordsSet = new HashSet<string>(
+                File.ReadLines(keywordsFileLocation)
+                .Select(keyword => keyword.Trim())
+                .Where(keyword => !string.IsNullOrEmpty(keyword)),
+                StringComparer.OrdinalIgnoreCase
+            );
+
+            int shortestWord = keywordsSet.Min(word => word.Length);
+            int longestWord = keywordsSet.Max(word => word.Length);
+
+            // Tracks each found word
+            HashSet<string> foundWords = new HashSet<string>();
+            // will track number of times the word is found
+            Dictionary<string, int> wordInstanceCount = new Dictionary<string, int>();
+
+            // Go through all parsed html text
+            for (int i = 0; i < parsedText.Count; i++)
+            {
+                // Algorithm for checking number of occurances of a keyword (if it exists)
+                for (int length = shortestWord; length <= longestWord; ++length) 
+                {
+                    for (int position = 0; position <= parsedText[i].Length - length; ++position)
+                    {
+                        string sub = parsedText[i].Substring(position, length);
+
+                        if (keywordsSet.Contains(sub))
+                        {
+                            // add word to foundWords
+                            foundWords.Add(sub);
+                            // if word already tracked in instanceCount then increment
+                            if (wordInstanceCount.ContainsKey(sub))
+                                wordInstanceCount[sub]++;
+                            // else add word and set number of times found
+                            else
+                                wordInstanceCount.Add(sub, 1);
+                        } 
+                    }
+                }
+            }
+            
+            var foundList = foundWords.ToList<string>();
+
+            for (int i = 0; i < foundList.Count; i++)
+            {
+                Log.Logger.Debug("\n");
+                Log.Logger.Debug("Found word: " + foundList[i]);
+                if (wordInstanceCount.ContainsKey(foundList[i]))
+                    Log.Logger.Debug("Num occurances: " + wordInstanceCount[foundList[i]]);
+                Log.Logger.Debug("\n");
+            }
+        }
 #endregion
     }
 

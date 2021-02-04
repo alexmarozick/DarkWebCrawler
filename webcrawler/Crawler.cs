@@ -197,7 +197,7 @@ namespace ScrapeAndCrawl
                         // Fetch data
                         for (int i = 0; i < DataScraper.dataDocuments.Count; i++)
                         {
-                            Log.Logger.Information(DataScraper.dataDocuments[i].ToJson());
+                            // ? Log.Logger.Information(DataScraper.dataDocuments[i].ToJson());
                             // TODO mongoDB add document ( DataScraper.dataDocuments[i])
                             // TODO determine what collection to place document in -- based on cli flag? 
                             //if server info 
