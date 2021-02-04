@@ -2,10 +2,11 @@
   .top-nav {
     width: 100%; /*Use 100% of the body width*/
     position: fixed; /*Position of the nav bar will be fixed*/
-    height: 3rem; /*Height of the nav bar*/
+    height: 5.5rem; /*Height of the nav bar*/
     background-color: rgb(15, 15, 15);
     overflow: hidden;
     z-index: 2;
+    padding-top: 1.5rem;
   }
   
   .nav-list {
@@ -20,6 +21,7 @@
     font-family: "Saira", sans-serif;
     text-decoration: none;
     filter: grayscale(100%) opacity(5);
+    font-size: 26px;
   }
   
   /*Navbar link color*/
@@ -64,7 +66,7 @@
     background-position: 0 100%;
   }
   
-  /* Switch properites*/
+  /* Switch properites
   .switch {
     position: fixed;
     width: 60px;
@@ -75,14 +77,14 @@
   }
   
   /* Hide default HTML checkbox */
-  .switch input {
+  /* .switch input {
     opacity: 0;
     width: 0;
     height: 0;
-  }
+  } */
   
   /*Set up slider box*/
-  .slider {
+  /* .slider {
     position: absolute;
     cursor: pointer;
     top: 0;
@@ -94,12 +96,12 @@
     -webkit-transition: 0.4s;
     transition: 0.4s;
     border-radius: 34px;
-  }
+  } */
   
   /*Set up slider circle that is inside the box*/
-  .slider:before {
+  /* .slider:before {
     position: absolute;
-    content: ""; /*Creates some conetent so we can have a cirlce*/
+    content: ""; 
     height: 20px;
     width: 20px;
     left: 3px;
@@ -108,21 +110,20 @@
     background-color: rgb(255, 255, 255);
     -webkit-transition: 0.4s;
     transition: 0.4s;
-    border-radius: 34px; /*Set the raidus of the content to be 1 so we get something like a circle*/
-    
-  }
+    border-radius: 34px; 
+  }  */
   
   /*Make the silder circle move when clicked on the slider*/
-  input:checked + .slider:before {
+  /* input:checked + .slider:before {
     -webkit-transform: translateX(34px);
     -ms-transform: translateX(34px);
     transform: translateX(34px);
     
     background-color: rgb(245, 189, 35);
-  }
+  } */
   
   /*Set background of the slider after being clicked*/
-  input:checked + .slider {
+  /* input:checked + .slider {
     background-color: rgb(146, 215, 243);
-  }
+  } */
   /*End of nav bar contents*/

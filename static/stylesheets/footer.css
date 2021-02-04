@@ -13,10 +13,10 @@
     /* margin-top: 1.5rem; */
     width: 100%;
     bottom: 0;
-    position: absolute;
+    position: relative;
     clear: both;
     /* height: 10%; */
-    height: 10%;
+    height: 15%;
     display: flex; /* now everything is side by side*/
     justify-content: space-evenly; /* centering things */
     /* margin: 0 auto; */

@@ -1,10 +1,10 @@
 :root {
-    --font-color: #lightgrey;
-    --link-font-color: #e1e1ff;
-    --bg-color: #0c3d37;
-    --heading-color: #818cab;
-    --button-color: #0c3d37;
-    --button-color-hover: #114f48; /* lighter color of the one above it*/
+    --font-color: #f2f2f2;
+    --link-font-color: #f2f2f2;
+    --bg-color: #383a59;
+    --heading-color: #ff79c6; 
+    --button-color: #50fa7b;
+    --button-color-hover: #36b154; /* lighter color of the one above it*/
     --button-color-text: black;
     }
   /* 
@@ -24,7 +24,7 @@
       --secondary-color: #536390;
       --font-color: #232835;
       --link-font-color: rgb(137, 137, 141);
-      --bg-color: #0c3d37;
+      --bg-color: #383a59;;
       --button-color: rgb(41, 41, 43);
       --button-color: #232835;
       --button-color-hover: #39435c;
@@ -32,34 +32,12 @@
     }
   
   main {
-    width: 70%;
-    padding: 30px 20px;
     margin: 0 auto;
-    min-height: calc(
+    /* min-height: calc(
       100vh - 48px - 129.73px
-    ); /* at minimum, footer will be at bottom (viewport - size of navbar - size of footer) */
+    ); at minimum, footer will be at bottom (viewport - size of navbar - size of footer) */
   }
   
-  #input_container {
-    width: 80%;
-  }
-  
-  #L {
-    float: left;
-    width: 40%;
-    padding: 0.7rem 3rem;
-  }
-  #M {
-    float: left;
-    width: 40%;
-    padding: 0.7rem 3rem;
-  }
-  #R {
-    float: left;
-    width: 20%;
-    /* padding: 0.7rem 3rem; */
-    /* vertical-align: middle; */
-  }
   
   body {
     font-family: "Open Sans", sans-serif;
@@ -72,11 +50,7 @@
   }
   
   p {
-    display: block;
-    margin-block-start: 1em;
-    margin-block-end: 1em;
-    margin-inline-start: 0px;
-    margin-inline-end: 0px;
+    margin: 0 0 0.5em;
   }
   
   body::-webkit-scrollbar {

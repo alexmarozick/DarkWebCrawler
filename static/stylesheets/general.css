@@ -1,0 +1,77 @@
+body, html {
+    height: 105%;
+  }
+  
+  .parallax {
+    /* The image used */
+    background-image: url('../images/2xNRGVg\ -\ Imgur.jpg');
+  
+    /* Full height */
+    height: 105%;
+
+    /* Create the parallax scrolling effect */
+    background-attachment: fixed;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+  }
+
+.section-1{
+    display: block;
+    padding-top: 2%;
+    background: #383a59;
+    color: #f2f2f2;
+}
+
+.section-2{
+    display: block;
+    padding-top: 2%;
+    background-color: #282a36;
+}
+
+.title{
+    color: #ff79c6;
+    margin: 0 0 10px;
+    font-size: 72px;
+    text-align: center;
+    font-family: Abril Text;
+    font-weight: 700;
+    height: 100px;
+
+}
+
+.subtitle{
+    color: #ff79c6;
+    margin-bottom: 10px;
+    font-size: 3em;
+    font-weight: 700;
+    font-family: Abril Text;
+}
+
+.question{
+    font-weight: bold;
+    font-size: 26px;
+    margin-bottom: 20px;
+}
+
+.answer{
+    font-size: 20px;
+    margin-bottom: 20px;
+}
+
+.textbox{
+    width: 60%;
+    /* text-align: center; */
+    /* justify-content: center; */
+    padding: 3% 0%;
+    margin-left: 20%;
+    margin-right: 20%;
+}
+
+
+/* Turn off parallax scrolling for all tablets and phones. Increase/decrease the pixels if needed */
+@media only screen and (max-device-width: 1080px) {
+    .parallax {
+      background-attachment: scroll;
+    }
+  }
