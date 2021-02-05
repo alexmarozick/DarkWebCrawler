@@ -22,15 +22,14 @@ using Serilog;         // Serilog provides diagnostic logging to files
 
 //BSON for mongo
 using MongoDB.Bson;
-
-//torSharp 
-// using Knapcode.TorSharp;
-
-//regex
-// using System.Text.RegularExpressions;
+//JSON Doc Formats
 
 //htmlAgilityParser
 using HtmlAgilityPack;
+
+//JSON 
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 #endregion
 
@@ -119,17 +118,31 @@ namespace ScrapeAndCrawl
             // * Convert to BSON Doc and add to dataDocuments
             var parsedText = ParseRawHTML(rawPageText);
 
-            //TODO: if word in location list add to counter dict
-            ParserWordCheck(parsedText, Constants.PlaceNamesTXT);
-
+            // if word in location list add to counter dict
+            var dict = ParserWordCheck(parsedText, Constants.PlaceNamesTXT);
+            //TODO: build json
             // ? foreach(var i in parsedText){
             // ?     Log.Logger.Debug(i);
             // ? }
 
+            WordLocationDoc wld = new WordLocationDoc()
+            {
+                //TODO: Get the actual title, maybe from the header? 
+                WebsiteTitle = "PLACEHOLDER",
+                URL = e.CrawledPage.Uri.ToString(),
+                Locations = dict
+            };
+
+            string stringjson = JsonSerializer.Serialize(wld);
+
+            // var bson = new BsonDocument.Parse(wld);
+
             var bson = new BsonDocument
             {
-                {"name", "test page"},
-                {"raw", rawPageText}
+                {"WebsiteTitle", "test page"},
+                {"URL", e.CrawledPage.Uri.ToString()},
+                {"Raw", rawPageText},
+                {"Locations", new BsonDocument {dict}},
             };
             
             dataDocuments.Add(bson);
@@ -176,18 +189,43 @@ namespace ScrapeAndCrawl
                                 parsed.Add(nNode.InnerText);
                             }   
                         }
-                    }
-                    
+                    }         
                 }
             }
             return parsed;
         }
 
         /// <summary>
-        /// This is an O(N^3) algorithm for counting number of occurances of certain keywords
+        /// This is an O(N^2) algorithm for counting number of occurances of certain keywords
         /// </summary>
         /// <returns> nothing currently </returns>
-        private static void ParserWordCheck(List<string> parsedText, string keywordsFileLocation)
+
+    private static Dictionary<string,int> ParserWordCheck(List<string> parsedText, string keywordsFileLocation)
+            {
+                // Create a Hashset of keywords to check against where ...
+                // * each key contains only the chars of the keyword
+                // * each key is NOT null or empty
+                HashSet<string> keywordsSet = new HashSet<string>(
+                    File.ReadLines(keywordsFileLocation)
+                    .Select(keyword => keyword.Trim().ToLower())
+                    .Where(keyword => !string.IsNullOrEmpty(keyword)),
+                    StringComparer.OrdinalIgnoreCase
+                );
+                // Tracks each found word
+                HashSet<string> foundWords = new HashSet<string>();
+                //  will track number of times the word is found
+                Dictionary<string, int> wordInstanceCount = new Dictionary<string, int>();
+                List<string> words = new List<string>();
+                foreach(var str in parsedText){
+                    foreach(var word in str.Split(' ')){
+                        if (keywordsSet.Contains(word)){
+                            wordInstanceCount[word] = wordInstanceCount.ContainsKey(word) ? wordInstanceCount[word] + 1 : 0;
+                            }
+                    }
+                }
+                return wordInstanceCount;
+            }
+        private static void old_ParserWordCheck(List<string> parsedText, string keywordsFileLocation)
         {
             // Create a Hashset of keywords to check against where ...
             // * each key contains only the chars of the keyword
@@ -246,7 +284,6 @@ namespace ScrapeAndCrawl
 #endregion
     }
 
-
     //Extend the PageRequester class and override the method that creates the HttpWebRequest
     public class ProxyPageRequester : PageRequester
     {
@@ -277,3 +314,4 @@ namespace ScrapeAndCrawl
     }
 
 }
+
