@@ -150,17 +150,20 @@ namespace ScrapeAndCrawl
 
             // var bson = new BsonDocument.Parse(wld);
 
-            var bson = new BsonDocument
+            if (dict.Count > 0)
             {
-                {"WebsiteTitle", siteTitle},
-                {"URL", e.CrawledPage.Uri.ToString()},
-                {"Raw", rawPageText},
-                {"Locations", new BsonDocument {dict}},
-            };
+                var bson = new BsonDocument
+                {
+                    {"WebsiteTitle", siteTitle},
+                    {"URL", e.CrawledPage.Uri.ToString()},
+                    {"Raw", rawPageText},
+                    {"Locations", new BsonDocument {dict}},
+                };
 
-            Log.Logger.Debug(bson.ToJson());
-            
-            dataDocuments.Add(bson);
+                // Log.Logger.Debug(bson.ToJson());
+                
+                dataDocuments.Add(bson);
+            }
         }
 
         private static List<string> ParseRawHTML(string rawHTML)
