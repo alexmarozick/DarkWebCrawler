@@ -120,20 +120,27 @@ namespace ScrapeAndCrawl
 
             // if word in location list add to counter dict
             var dict = ParserWordCheck(parsedText, Constants.PlaceNamesTXT);
+
+            // foreach (var pen15 in dict)
+            // {
+            //     Log.Logger.Debug(pen15.Key + " " + pen15.Value.ToString());
+            // }
+
             //TODO: build json
-            // ? foreach(var i in parsedText){
+            // ? foreach(var i in parsedText)
+            // ? {
             // ?     Log.Logger.Debug(i);
             // ? }
 
-            WordLocationDoc wld = new WordLocationDoc()
-            {
-                //TODO: Get the actual title, maybe from the header? 
-                WebsiteTitle = "PLACEHOLDER",
-                URL = e.CrawledPage.Uri.ToString(),
-                Locations = dict
-            };
+            // WordLocationDoc wld = new WordLocationDoc()
+            // {
+            //     //TODO: Get the actual title, maybe from the header? 
+            //     WebsiteTitle = "PLACEHOLDER",
+            //     URL = e.CrawledPage.Uri.ToString(),
+            //     Locations = dict
+            // };
 
-            string stringjson = JsonSerializer.Serialize(wld);
+            // string stringjson = JsonSerializer.Serialize(wld);
 
             // var bson = new BsonDocument.Parse(wld);
 
@@ -144,9 +151,10 @@ namespace ScrapeAndCrawl
                 {"Raw", rawPageText},
                 {"Locations", new BsonDocument {dict}},
             };
+
+            Log.Logger.Debug(bson.ToJson());
             
             dataDocuments.Add(bson);
-            //label, option, mark, 
         }
 
         private static List<string> ParseRawHTML(string rawHTML)
@@ -200,31 +208,37 @@ namespace ScrapeAndCrawl
         /// </summary>
         /// <returns> nothing currently </returns>
 
-    private static Dictionary<string,int> ParserWordCheck(List<string> parsedText, string keywordsFileLocation)
+        private static Dictionary<string,int> ParserWordCheck(List<string> parsedText, string keywordsFileLocation)
+        {
+            // Create a Hashset of keywords to check against where ...
+            // * each key contains only the chars of the keyword
+            // * each key is NOT null or empty
+            HashSet<string> keywordsSet = new HashSet<string>(
+                File.ReadLines(keywordsFileLocation)
+                .Select(keyword => keyword.Trim().ToLower())
+                .Where(keyword => !string.IsNullOrEmpty(keyword)),
+                StringComparer.OrdinalIgnoreCase
+            );
+
+            // Tracks each found word
+            HashSet<string> foundWords = new HashSet<string>();
+
+            //  will track number of times the word is found
+            Dictionary<string, int> wordInstanceCount = new Dictionary<string, int>();
+            List<string> words = new List<string>();
+
+            foreach(var str in parsedText)
             {
-                // Create a Hashset of keywords to check against where ...
-                // * each key contains only the chars of the keyword
-                // * each key is NOT null or empty
-                HashSet<string> keywordsSet = new HashSet<string>(
-                    File.ReadLines(keywordsFileLocation)
-                    .Select(keyword => keyword.Trim().ToLower())
-                    .Where(keyword => !string.IsNullOrEmpty(keyword)),
-                    StringComparer.OrdinalIgnoreCase
-                );
-                // Tracks each found word
-                HashSet<string> foundWords = new HashSet<string>();
-                //  will track number of times the word is found
-                Dictionary<string, int> wordInstanceCount = new Dictionary<string, int>();
-                List<string> words = new List<string>();
-                foreach(var str in parsedText){
-                    foreach(var word in str.Split(' ')){
-                        if (keywordsSet.Contains(word)){
-                            wordInstanceCount[word] = wordInstanceCount.ContainsKey(word) ? wordInstanceCount[word] + 1 : 0;
-                            }
+                foreach(var word in str.Split(' '))
+                {
+                    if (keywordsSet.Contains(word))
+                    {
+                        wordInstanceCount[word] = wordInstanceCount.ContainsKey(word) ? wordInstanceCount[word] + 1 : 1;
                     }
                 }
-                return wordInstanceCount;
             }
+            return wordInstanceCount;
+        }
         private static void old_ParserWordCheck(List<string> parsedText, string keywordsFileLocation)
         {
             // Create a Hashset of keywords to check against where ...

@@ -194,6 +194,7 @@ namespace ScrapeAndCrawl
                     // Check if cached Data
                     if (DataScraper.dataDocuments.Count > 0)
                     {
+                        Log.Logger.Debug("Number of documents generated: " + DataScraper.dataDocuments.Count.ToString());
                         // Fetch data
                         for (int i = 0; i < DataScraper.dataDocuments.Count; i++)
                         {
@@ -201,7 +202,27 @@ namespace ScrapeAndCrawl
                             // TODO mongoDB add document ( DataScraper.dataDocuments[i])
                             // TODO determine what collection to place document in -- based on cli flag? 
                             //if server info 
-                                //call server info parse function 
+                                //call server info parse function
+
+                            
+                            var client = new MongoClient("mongodb+srv://test-user_01:vVzppZ1Sz6PzE3Mx@cluster0.bvnvt.mongodb.net/Cluster0?retryWrites=true&w=majority");
+                            var database = client.GetDatabase("test");
+
+                            // TODO - figure out a better way to handle this
+                            // if (database.GetCollection<BsonDocument>("Test Collection [wikipedia]").Exists())
+                            // {
+
+                            // }
+                            // else
+                            //    database.CreateCollection("Test Collection [wikipedia]");
+
+                            var collection = database.GetCollection<BsonDocument>("onion-test");
+
+                            if(collection != null)
+                            {
+                                await collection.InsertOneAsync(DataScraper.dataDocuments[i]);
+                            }
+
                         }
                     }
                 }

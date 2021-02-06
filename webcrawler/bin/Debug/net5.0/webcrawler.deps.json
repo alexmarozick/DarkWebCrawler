@@ -12,6 +12,7 @@
           "AbotX": "2.1.8",
           "CommandLineParser": "2.8.0",
           "HtmlAgilityPack": "1.11.30",
+          "JSON": "1.0.1",
           "Knapcode.TorSharp": "2.5.0",
           "MongoDB.Bson": "2.11.6",
           "MongoDB.Driver": "2.11.6",
@@ -102,6 +103,14 @@
           "lib/netstandard2.0/HtmlAgilityPack.dll": {
             "assemblyVersion": "1.11.30.0",
             "fileVersion": "1.11.30.0"
+          }
+        }
+      },
+      "JSON/1.0.1": {
+        "runtime": {
+          "lib/net40/Json.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
           }
         }
       },
@@ -1229,6 +1238,13 @@
       "sha512": "sha512-IuOSVuuHCJKrnAjNe5rZnZCyR/NpXL6ExEL7UiM8h4fnhbt8tLqIKol9q5Lv0uoxWO8fl9Uq+1kpGfMDUdr5zA==",
       "path": "htmlagilitypack/1.11.30",
       "hashPath": "htmlagilitypack.1.11.30.nupkg.sha512"
+    },
+    "JSON/1.0.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-n387Xh1oDWolCIVb2oMV1bWkEKBBk5iLkMuaiAQuLUaAZwowyym2s/6b/hFnmS5J3bzINmZ7I2WEbBAZMQd2dg==",
+      "path": "json/1.0.1",
+      "hashPath": "json.1.0.1.nupkg.sha512"
     },
     "Knapcode.TorSharp/2.5.0": {
       "type": "package",
