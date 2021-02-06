@@ -216,7 +216,7 @@ namespace ScrapeAndCrawl
                             // else
                             //    database.CreateCollection("Test Collection [wikipedia]");
 
-                            var collection = database.GetCollection<BsonDocument>("onion-test");
+                            var collection = database.GetCollection<BsonDocument>("Test Collection [wikipedia]");
 
                             if(collection != null)
                             {

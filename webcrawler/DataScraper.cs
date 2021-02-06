@@ -118,6 +118,12 @@ namespace ScrapeAndCrawl
             // * Convert to BSON Doc and add to dataDocuments
             var parsedText = ParseRawHTML(rawPageText);
 
+            var htmldoc = new HtmlDocument();
+            htmldoc.LoadHtml(rawPageText);
+
+            var titlenode = htmldoc.DocumentNode.SelectSingleNode("//title");
+            var siteTitle = titlenode.InnerText;
+
             // if word in location list add to counter dict
             var dict = ParserWordCheck(parsedText, Constants.PlaceNamesTXT);
 
@@ -146,7 +152,7 @@ namespace ScrapeAndCrawl
 
             var bson = new BsonDocument
             {
-                {"WebsiteTitle", "test page"},
+                {"WebsiteTitle", siteTitle},
                 {"URL", e.CrawledPage.Uri.ToString()},
                 {"Raw", rawPageText},
                 {"Locations", new BsonDocument {dict}},
