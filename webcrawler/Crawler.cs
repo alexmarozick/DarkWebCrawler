@@ -232,10 +232,8 @@ namespace ScrapeAndCrawl
                     //Stop Torsharp
                     proxy.Stop();
             }
-            // * ==================================================================================
         }
-    
-    
+
         // ========================================================================================
         // ========================================================================================
         // ========================================================================================
@@ -271,7 +269,7 @@ namespace ScrapeAndCrawl
         }
 
         /// <summary>
-        /// Generates a list of website names to crawl from
+        /// Generates a list of website names to crawl from with a txt file as input
         /// </summary>
         static List<string> GenerateSiteList(string fileName)
         {
