@@ -109,47 +109,25 @@ namespace ScrapeAndCrawl
         { 
             var httpStatus = e.CrawledPage.HttpResponseMessage.StatusCode;
             var rawPageText = e.CrawledPage.Content.Text;
-            // Log.Logger.Information(rawPageText);
-            // TODO:
-            // * pase page content into data we want...
 
-            // ? add private parsing methods to class and use them here
-
-            // * Convert to BSON Doc and add to dataDocuments
+            // this returns a list of parsed out text content from the raw html
             var parsedText = ParseRawHTML(rawPageText);
 
+            // Here I parse out the website's title ----------------------
             var htmldoc = new HtmlDocument();
             htmldoc.LoadHtml(rawPageText);
 
             var titlenode = htmldoc.DocumentNode.SelectSingleNode("//title");
             var siteTitle = titlenode.InnerText;
+            // -----------------------------------------------------------
 
-            // if word in location list add to counter dict
+            // checks parsedText against list of keywords
+            // keywords generated from txt file
+            // returns dict of keywords found, how many times found
             var dict = ParserWordCheck(parsedText, Constants.PlaceNamesTXT);
 
-            // foreach (var pen15 in dict)
-            // {
-            //     Log.Logger.Debug(pen15.Key + " " + pen15.Value.ToString());
-            // }
-
-            //TODO: build json
-            // ? foreach(var i in parsedText)
-            // ? {
-            // ?     Log.Logger.Debug(i);
-            // ? }
-
-            // WordLocationDoc wld = new WordLocationDoc()
-            // {
-            //     //TODO: Get the actual title, maybe from the header? 
-            //     WebsiteTitle = "PLACEHOLDER",
-            //     URL = e.CrawledPage.Uri.ToString(),
-            //     Locations = dict
-            // };
-
-            // string stringjson = JsonSerializer.Serialize(wld);
-
-            // var bson = new BsonDocument.Parse(wld);
-
+            // We only want to create and add a bson doc to the list if we
+            // actually found some of the data we are looking for
             if (dict.Count > 0)
             {
                 var bson = new BsonDocument
@@ -160,8 +138,6 @@ namespace ScrapeAndCrawl
                     {"Locations", new BsonDocument {dict}},
                 };
 
-                // Log.Logger.Debug(bson.ToJson());
-                
                 dataDocuments.Add(bson);
             }
         }
@@ -215,8 +191,7 @@ namespace ScrapeAndCrawl
         /// <summary>
         /// This is an O(N^2) algorithm for counting number of occurances of certain keywords
         /// </summary>
-        /// <returns> nothing currently </returns>
-
+        /// <returns> Dictionary of (string, int) value pairs </returns>
         private static Dictionary<string,int> ParserWordCheck(List<string> parsedText, string keywordsFileLocation)
         {
             // Create a Hashset of keywords to check against where ...
@@ -248,6 +223,8 @@ namespace ScrapeAndCrawl
             }
             return wordInstanceCount;
         }
+
+#region old word parser
         private static void old_ParserWordCheck(List<string> parsedText, string keywordsFileLocation)
         {
             // Create a Hashset of keywords to check against where ...
@@ -305,9 +282,13 @@ namespace ScrapeAndCrawl
             }
         }
 #endregion
+#endregion
     }
 
-    //Extend the PageRequester class and override the method that creates the HttpWebRequest
+#region ProxyPageRequester
+    /// <summary>
+    /// Extend the PageRequester class and override the method that creates the HttpWebRequest
+    /// </summary>
     public class ProxyPageRequester : PageRequester
     {
         private readonly CrawlConfiguration _config; 
@@ -325,16 +306,13 @@ namespace ScrapeAndCrawl
             _torHandler = torHandler;
         }
 
+        /// <summary> Overridden from PageRequester. </summary>
+        /// <returns> HttpClientHandler associated with this PageRequester </returns>
         protected override HttpClientHandler BuildHttpClientHandler(Uri rootUri)
         {
-
             return _torHandler;
-
-            // HttpClientHandler request = base.BuildHttpClientHandler(rootUri);
-            // request.Proxy = new WebProxy(_config.ConfigurationExtensions["TorProxy"]);
-            // return request;
         }
     }
-
+#endregion
 }
 
