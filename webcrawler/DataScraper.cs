@@ -41,6 +41,7 @@ namespace ScrapeAndCrawl
     {
         public static string PlaceNamesTXT = "./data_lists/place_names.txt";
         public static string UKUSPlaceNamesTXT = "./data_lists/uk_us_cities.txt";
+        public static string DefaultIgnoreWordsTXT = "./data_lists/ignore_words.txt";
     }
 
     /// <summary>
@@ -124,7 +125,8 @@ namespace ScrapeAndCrawl
             // checks parsedText against list of keywords
             // keywords generated from txt file
             // returns dict of keywords found, how many times found
-            var dict = ParserWordCheck(parsedText, Constants.PlaceNamesTXT);
+            var desiredWords = ExcludeWords(parsedText,Constants.DefaultIgnoreWordsTXT);
+            var dict = GetWordCount(desiredWords, Constants.PlaceNamesTXT);
 
             // We only want to create and add a bson doc to the list if we
             // actually found some of the data we are looking for
@@ -192,29 +194,40 @@ namespace ScrapeAndCrawl
         /// This is an O(N^2) algorithm for counting number of occurances of certain keywords
         /// </summary>
         /// <returns> Dictionary of (string, int) value pairs </returns>
-        private static Dictionary<string,int> ParserWordCheck(List<string> parsedText, string keywordsFileLocation)
+        private static Dictionary<string,int> GetWordCount(List<string> parsedText, string keywords = null)
         {
             // Create a Hashset of keywords to check against where ...
             // * each key contains only the chars of the keyword
             // * each key is NOT null or empty
-            HashSet<string> keywordsSet = new HashSet<string>(
-                File.ReadLines(keywordsFileLocation)
+            //if type == string (file path) then do : 
+             HashSet<string> keywordsSet = new HashSet<string>();
+            if (keywords != null){
+                keywordsSet = new HashSet<string>(
+                File.ReadLines(keywords)
                 .Select(keyword => keyword.Trim().ToLower())
                 .Where(keyword => !string.IsNullOrEmpty(keyword)),
                 StringComparer.OrdinalIgnoreCase
-            );
+                );
+
+            }
+            //else build has
 
             // Tracks each found word
             HashSet<string> foundWords = new HashSet<string>();
 
             //  will track number of times the word is found
             Dictionary<string, int> wordInstanceCount = new Dictionary<string, int>();
-            List<string> words = new List<string>();
+            List<string> words = new List<string>(); // TODO not used
 
-            foreach(var str in parsedText)
+            foreach(var word in parsedText)
             {
-                foreach(var word in str.Split(' '))
+                if (keywords == null)
                 {
+                    wordInstanceCount[word] = wordInstanceCount.ContainsKey(word) ? wordInstanceCount[word] + 1 : 1;
+
+                }
+                else
+                { 
                     if (keywordsSet.Contains(word))
                     {
                         wordInstanceCount[word] = wordInstanceCount.ContainsKey(word) ? wordInstanceCount[word] + 1 : 1;
@@ -222,6 +235,44 @@ namespace ScrapeAndCrawl
                 }
             }
             return wordInstanceCount;
+        }
+
+        private static List<string> ExcludeWords(List<string> parsedText, string toIgnore)
+        {
+            // Define a set of words that will be excluded in general
+            HashSet<string> ignoredSet = new HashSet<string>(
+                File.ReadLines(Constants.DefaultIgnoreWordsTXT)
+                .Select(keyword => keyword.Trim().ToLower())
+                .Where(keyword => !string.IsNullOrEmpty(keyword)),
+                StringComparer.OrdinalIgnoreCase
+            );
+            // string toIgnore is a file of words that are additive to the set of words already being excluded
+            HashSet<string> additiveIgnoredSet = new HashSet<string>(
+                // TODO maybe have a check if toIgnore is NULL
+                File.ReadLines(toIgnore)
+                .Select(keyword => keyword.Trim().ToLower())
+                .Where(keyword => !string.IsNullOrEmpty(keyword)),
+                StringComparer.OrdinalIgnoreCase
+            );
+            // TODO initialize dict to store data
+            Dictionary<string, int> wordInstanceCount = new Dictionary<string, int>();
+
+            ignoredSet.UnionWith(additiveIgnoredSet);
+
+            List<string> desiredWords = new List<string>(); 
+            // loop for parsing text
+            foreach(var str in parsedText)
+            {
+                foreach(var word in str.Split(' '))
+                {
+                    // if word is not contained within general set or within the additive one, might need a check if set is null but not sure
+                    if (!ignoredSet.Contains(word))
+                    {
+                        desiredWords.Add(word);
+                    }
+                }
+            }
+            return desiredWords;
         }
 
 #region old word parser

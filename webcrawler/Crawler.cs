@@ -133,6 +133,7 @@ namespace ScrapeAndCrawl
                     await fetcher.FetchAsync(updates);
                 }
             }
+            // starts tor proxy
             using (var proxy = new TorSharpProxy(settings))
             {
                 var handler = new HttpClientHandler
@@ -196,19 +197,21 @@ namespace ScrapeAndCrawl
                     {
                         Log.Logger.Debug("Number of documents generated: " + DataScraper.dataDocuments.Count.ToString());
                         // Fetch data
+                        var client = new MongoClient("mongodb+srv://test-user_01:vVzppZ1Sz6PzE3Mx@cluster0.bvnvt.mongodb.net/Cluster0?retryWrites=true&w=majority");
+                        var database = client.GetDatabase("test");
+                        var collection = database.GetCollection<BsonDocument>("Test Collection [wikipedia]");
                         for (int i = 0; i < DataScraper.dataDocuments.Count; i++)
                         {
                             // ? Log.Logger.Information(DataScraper.dataDocuments[i].ToJson());
-                            // TODO mongoDB add document ( DataScraper.dataDocuments[i])
-                            // TODO determine what collection to place document in -- based on cli flag? 
+                            // --TODO mongoDB add document ( DataScraper.dataDocuments[i])
+                            // --TODO determine what collection to place document in -- based on cli flag? 
                             //if server info 
                                 //call server info parse function
 
                             
-                            var client = new MongoClient("mongodb+srv://test-user_01:vVzppZ1Sz6PzE3Mx@cluster0.bvnvt.mongodb.net/Cluster0?retryWrites=true&w=majority");
-                            var database = client.GetDatabase("test");
 
-                            // TODO - figure out a better way to handle this
+
+                            // --TODO - figure out a better way to handle this
                             // if (database.GetCollection<BsonDocument>("Test Collection [wikipedia]").Exists())
                             // {
 
@@ -216,10 +219,9 @@ namespace ScrapeAndCrawl
                             // else
                             //    database.CreateCollection("Test Collection [wikipedia]");
 
-                            var collection = database.GetCollection<BsonDocument>("Test Collection [wikipedia]");
-
                             if(collection != null)
                             {
+                                //TODO: Make InsertMany and take out of forloop
                                 await collection.InsertOneAsync(DataScraper.dataDocuments[i]);
                             }
 
