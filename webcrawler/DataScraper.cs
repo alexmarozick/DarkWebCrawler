@@ -179,6 +179,13 @@ namespace ScrapeAndCrawl
             var siteTitle = titlenode.InnerText;
             // -----------------------------------------------------------
 
+            // checks parsedText against list of keywords
+            // keywords generated from txt file
+            // returns dict of keywords found, how many times found
+            var desiredWords = ExcludeWords(parsedText,Constants.DefaultIgnoreWordsTXT);
+            // var dict = GetWordCount(desiredWords, Constants.PlaceNamesTXT);
+            var dict = GetWordCount(desiredWords);
+
             // TODO
         }
 
