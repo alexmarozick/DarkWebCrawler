@@ -41,7 +41,7 @@ namespace ScrapeAndCrawl
     {
         public static string PlaceNamesTXT = "./data_lists/place_names.txt";
         public static string UKUSPlaceNamesTXT = "./data_lists/uk_us_cities.txt";
-        public static string DefaultIgnoreWordsTXT = "./data_lists/ignore_words.txt";
+        public static string DefaultIgnoreWordsTXT = "./data_lists/default_ignore_words.txt";
     }
 
     /// <summary>
@@ -69,14 +69,14 @@ namespace ScrapeAndCrawl
         /// (i.e. specify how many sites to crawl, whether or not to 
         /// render js, etc) then creates and executes crawler
         /// </summary>
-        public static async Task Crawl(CrawlConfigurationX configX, HttpClientHandler handler, string uriToCrawl = "http://google.com")
+        public static async Task Crawl(CrawlConfigurationX configX, HttpClientHandler httpHandler, PageHandlerType pageHandlerType, string uriToCrawl = "http://google.com")
         {
             // 'using' sets up scope for crawlerX object to be used
             // disposes of object at end of scope. (i.e. close-curly-brace)
             // I saw this used in the github example. Maybe its good practice??
 
             ImplementationContainer impContainer = new ImplementationContainer();
-            impContainer.PageRequester = new ProxyPageRequester(handler, configX, new WebContentExtractor(), null);
+            impContainer.PageRequester = new ProxyPageRequester(httpHandler, configX, new WebContentExtractor(), null);
 
             ImplementationOverride impOverride = new ImplementationOverride(configX, impContainer); 
 
@@ -89,8 +89,17 @@ namespace ScrapeAndCrawl
 
                     return new CrawlDecision { Allow = true };
                 });
-                //add handler to be called when the crawl for that page is complete
-                crawlerX.PageCrawlCompleted += PageCrawlHandler;
+
+                switch (pageHandlerType)
+                {
+                    case PageHandlerType.wordFreq:
+                        //add handler to be called when the crawl for that page is complete
+                        crawlerX.PageCrawlCompleted += WordFrequencyHandler;
+                        break;
+                    case PageHandlerType.sentAnal:
+                        crawlerX.PageCrawlCompleted += SentimentAnalysisHandler;
+                        break;
+                }
 
                 await crawlerX.CrawlAsync(new Uri(uriToCrawl));
             }
@@ -104,10 +113,10 @@ namespace ScrapeAndCrawl
 
         /// <summary>
         /// Handles the PageCrawlCompleted event called by a given Crawler.
-        /// Will parse each website and store data in a Bson Document.
+        /// This handler parses webpages and collects word frequency data.
         /// </summary>
-        private static void PageCrawlHandler(object sender, PageCrawlCompletedArgs e)
-        { 
+        private static void WordFrequencyHandler(object sender, PageCrawlCompletedArgs e)
+        {
             var httpStatus = e.CrawledPage.HttpResponseMessage.StatusCode;
             var rawPageText = e.CrawledPage.Content.Text;
 
@@ -126,7 +135,13 @@ namespace ScrapeAndCrawl
             // keywords generated from txt file
             // returns dict of keywords found, how many times found
             var desiredWords = ExcludeWords(parsedText,Constants.DefaultIgnoreWordsTXT);
-            var dict = GetWordCount(desiredWords, Constants.PlaceNamesTXT);
+            // var dict = GetWordCount(desiredWords, Constants.PlaceNamesTXT);
+            var dict = GetWordCount(desiredWords);
+
+            foreach (var entry in dict)
+            {
+                Log.Logger.Debug(entry.Key + " : " + entry.Value);
+            }
 
             // We only want to create and add a bson doc to the list if we
             // actually found some of the data we are looking for
@@ -142,6 +157,29 @@ namespace ScrapeAndCrawl
 
                 dataDocuments.Add(bson);
             }
+        }
+
+        /// <summary>
+        /// Handles the PageCrawlCompleted event called by a given Crawler.
+        /// This handler parses webpages and collects data for rudimentary sentiment analysis.
+        /// </summary>
+        private static void SentimentAnalysisHandler(object sender, PageCrawlCompletedArgs e)
+        {
+            var httpStatus = e.CrawledPage.HttpResponseMessage.StatusCode;
+            var rawPageText = e.CrawledPage.Content.Text;
+
+            // this returns a list of parsed out text content from the raw html
+            var parsedText = ParseRawHTML(rawPageText);
+
+            // Here I parse out the website's title ----------------------
+            var htmldoc = new HtmlDocument();
+            htmldoc.LoadHtml(rawPageText);
+
+            var titlenode = htmldoc.DocumentNode.SelectSingleNode("//title");
+            var siteTitle = titlenode.InnerText;
+            // -----------------------------------------------------------
+
+            // TODO
         }
 
         private static List<string> ParseRawHTML(string rawHTML)
@@ -181,7 +219,7 @@ namespace ScrapeAndCrawl
                             String nodeText = nNode.InnerText;
                             if (nodeText.Any( x => char.IsLetter(x)))
                             {
-                                parsed.Add(nNode.InnerText);
+                                parsed.Add(nNode.InnerText.ToLower());
                             }   
                         }
                     }         
@@ -237,6 +275,7 @@ namespace ScrapeAndCrawl
             return wordInstanceCount;
         }
 
+        /// <summary> TODO: add description for this method </summary>
         private static List<string> ExcludeWords(List<string> parsedText, string toIgnore)
         {
             // Define a set of words that will be excluded in general
@@ -259,80 +298,23 @@ namespace ScrapeAndCrawl
 
             ignoredSet.UnionWith(additiveIgnoredSet);
 
-            List<string> desiredWords = new List<string>(); 
+            List<string> desiredWords = new List<string>();
             // loop for parsing text
             foreach(var str in parsedText)
             {
                 foreach(var word in str.Split(' '))
                 {
                     // if word is not contained within general set or within the additive one, might need a check if set is null but not sure
-                    if (!ignoredSet.Contains(word))
+                    if (!ignoredSet.Contains(word) && word.Any(x=>char.IsLetter(x)))
                     {
+                        // if (nodeText.Any( x => char.IsLetter(x)))  // makes sure word contains only letters
+
                         desiredWords.Add(word);
                     }
                 }
             }
             return desiredWords;
         }
-
-#region old word parser
-        private static void old_ParserWordCheck(List<string> parsedText, string keywordsFileLocation)
-        {
-            // Create a Hashset of keywords to check against where ...
-            // * each key contains only the chars of the keyword
-            // * each key is NOT null or empty
-            HashSet<string> keywordsSet = new HashSet<string>(
-                File.ReadLines(keywordsFileLocation)
-                .Select(keyword => keyword.Trim())
-                .Where(keyword => !string.IsNullOrEmpty(keyword)),
-                StringComparer.OrdinalIgnoreCase
-            );
-
-            int shortestWord = keywordsSet.Min(word => word.Length);
-            int longestWord = keywordsSet.Max(word => word.Length);
-
-            // Tracks each found word
-            HashSet<string> foundWords = new HashSet<string>();
-            // will track number of times the word is found
-            Dictionary<string, int> wordInstanceCount = new Dictionary<string, int>();
-
-            // Go through all parsed html text
-            for (int i = 0; i < parsedText.Count; i++)
-            {
-                // Algorithm for checking number of occurances of a keyword (if it exists)
-                for (int length = shortestWord; length <= longestWord; ++length) 
-                {
-                    for (int position = 0; position <= parsedText[i].Length - length; ++position)
-                    {
-                        string sub = parsedText[i].Substring(position, length);
-
-                        if (keywordsSet.Contains(sub))
-                        {
-                            // add word to foundWords
-                            foundWords.Add(sub);
-                            // if word already tracked in instanceCount then increment
-                            if (wordInstanceCount.ContainsKey(sub))
-                                wordInstanceCount[sub]++;
-                            // else add word and set number of times found
-                            else
-                                wordInstanceCount.Add(sub, 1);
-                        } 
-                    }
-                }
-            }
-            
-            var foundList = foundWords.ToList<string>();
-
-            for (int i = 0; i < foundList.Count; i++)
-            {
-                Log.Logger.Debug("\n");
-                Log.Logger.Debug("Found word: " + foundList[i]);
-                if (wordInstanceCount.ContainsKey(foundList[i]))
-                    Log.Logger.Debug("Num occurances: " + wordInstanceCount[foundList[i]]);
-                Log.Logger.Debug("\n");
-            }
-        }
-#endregion
 #endregion
     }
 

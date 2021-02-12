@@ -1,4 +1,4 @@
-/* Web Crawler / Scraper
+/* Web Data Scraper
  * Seth Tal, Juno Mayor, Alex Marozick
  * 01.14.2021
  * This file contains the main program execution pipeline for scraping web
@@ -15,13 +15,13 @@ using System.Net;
 using System.Net.Http;
 
 // Abot2
-using Abot2.Core;      // Core components <change this comment later this is a bad description>
-using Abot2.Crawler;   // Namespace where Crawler objects are defined
-using Abot2.Poco;      //
+// using Abot2.Core;      // Core components <change this comment later this is a bad description>
+// using Abot2.Crawler;   // Namespace where Crawler objects are defined
+// using Abot2.Poco;      //
 
 // AbotX2
-using AbotX2.Crawler;  //
-using AbotX2.Parallel; //
+// using AbotX2.Crawler;  //
+// using AbotX2.Parallel; //
 using AbotX2.Poco;     //
 
 // Logger
@@ -39,10 +39,16 @@ using Knapcode.TorSharp;
 #endregion
 
 
-
-
 namespace ScrapeAndCrawl
 {
+
+    /// <summary> Helpful for not mispelling handler types. </summary>
+    public enum PageHandlerType
+    {
+        NULL = 0,
+        wordFreq = 1,
+        sentAnal = 2
+    }
 
 #region CMD arg Parser
 
@@ -51,11 +57,14 @@ namespace ScrapeAndCrawl
     /// </summary>
     public class Options
     {
-        [Option("file", Required=false, HelpText="Text file containing list of websites to crawl.")]
+        [Option('s', "single", Required=false, HelpText="Crawl a single URL. Specify the URL.")]
+        public string StartingUri { get; set; }
+
+        [Option('m', "multi", Required=false, HelpText="Crawl multiple URLs. Pass input file containing URLs.")]
         public string InputFile { get; set; }
 
-        [Option('s', "start", Required=false, HelpText="Starting URL to crawl from.")]
-        public string StartingUri { get; set; }
+        [Option('h', "handler", Group = "Page Handler", HelpText = "Specify page handler type:\n* wordFrequency\n* sentimentAnalysis")]
+        public PageHandlerType handlerType { get; set; }
     }
 
 #endregion
@@ -83,57 +92,23 @@ namespace ScrapeAndCrawl
         /// <param name="args"> Command line arguements passed to executable. </param>
         static async Task Main(string[] args)
         {
-            // * SET UP LOGGER --------------------------------------------------------------------
-            // "Log" from Serilog namespace
-            // Configure the logging tool for nice command line prints/formats
-            Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Debug()
-                .WriteTo.Console()
-                .WriteTo.File("./log/log.txt")
-                .CreateLogger();
+            // Creates a Logger object from Serilog. Writes up to Debug level prints.
+            SetupLogger();
 
             Log.Logger.Information("Darkweb Data Scraper start...");
-            // * ----------------------------------------------------------------------------------
 
-            // * PARSE COMMAND LINE ARGS ----------------------------------------------------------
-            // Uses CommandLine to parse predefined command line args
-            Parser.Default.ParseArguments<Options>(args)
-                .WithParsed<Options>(ParseSuccessHandler)
-                .WithNotParsed<Options>(ParseErrorHandler);
+            // Parses command line arguements and stores them in "parsedArgs"
+            SetupParser(args);
 
-            // "parsedArgs" static member contains parsed command line args
-            // * ----------------------------------------------------------------------------------
-            //* INIT TORSHARP --------------------------------------------------------------------- 
-            var settings = new TorSharpSettings
-            {
-                ZippedToolsDirectory = Path.Combine(Path.GetTempPath(), "TorZipped"),
-                ExtractedToolsDirectory = Path.Combine(Path.GetTempPath(), "TorExtracted"),
-                PrivoxySettings = { Port = 1337 },
-                TorSettings =
-                {
-                    SocksPort = 1338,
-                    ControlPort = 1339,
-                    ControlPassword = "foobar",
-                },
-            };
+            // I made this function to move this setup out of main.
+            // Returns a TorSharpSettings object for use with TorSharp.
+            var settings = SetupTorSharpSettings();
 
-            // download tools
-            using (HttpClient hc = new HttpClient())
-            {
-                var fetcher = new TorSharpToolFetcher(settings, hc);
-                var updates = await fetcher.CheckForUpdatesAsync();
-                Console.WriteLine($"Current Privoxy: {updates.Privoxy.LocalVersion?.ToString() ?? "(none)"}");
-                Console.WriteLine($" Latest Privoxy: {updates.Privoxy.LatestDownload.Version}");
-                Console.WriteLine();
-                Console.WriteLine($"Current Tor: {updates.Tor.LocalVersion?.ToString() ?? "(none)"}");
-                Console.WriteLine($" Latest Tor: {updates.Tor.LatestDownload.Version}");
-                Console.WriteLine();
-                if (updates.HasUpdate)
-                {
-                    await fetcher.FetchAsync(updates);
-                }
-            }
-            // starts tor proxy
+            // Idk exactly how this works but like... its for torsharp
+            // its uh... setting up torsharp "tools"...also its asyncronous
+            await SetupTorSharpTools(settings);
+
+            // * starts tor proxy -----------------------------------------------------------------
             using (var proxy = new TorSharpProxy(settings))
             {
                 var handler = new HttpClientHandler
@@ -151,35 +126,22 @@ namespace ScrapeAndCrawl
                         waiting = false;
                     }
                     
-                    // * SETUP AND EXECUTE CRAWLER ========================================================
+                    // * SETUP AND EXECUTE CRAWLER ================================================
                     // Setup Crawler configuration
                     CrawlConfigurationX crawlConfig_RecursiveCrawl = new CrawlConfigurationX
                     {
-                        MaxPagesToCrawl = 2,                             // Number of sites to crawl
-                        IsJavascriptRenderingEnabled = true,              // Should crawler render JS?
+                        MaxPagesToCrawl = 1,                               // Number of sites to crawl
+                        IsJavascriptRenderingEnabled = true,               // Should crawler render JS?
                         JavascriptRenderingWaitTimeInMilliseconds = 10000, // How long to wait for js to process 
-                        MaxConcurrentSiteCrawls = 1,                      // Only crawl a single site at a time
-                        MaxRetryCount = 3
-                        // ? MaxConcurrentThreads = 8                     // Logical processor count to avoid cpu thrashing
+                        MaxConcurrentSiteCrawls = 1,                       // Only crawl a single site at a time
+                        MaxRetryCount = 3                                  // Retries to connect and crawl site 'x' times
                     };
 
-                    CrawlConfigurationX crawlConfig_SingleSiteCrawl = new CrawlConfigurationX
+                    if (parsedArgs.InputFile == null) // THIS IS "-s"
                     {
-                        MaxPagesToCrawl = 1,                              // Number of sites to crawl
-                        IsJavascriptRenderingEnabled = true,              // Should crawler render JS?
-                        JavascriptRenderingWaitTimeInMilliseconds = 3000, // How long to wait for js to process 
-                        MaxConcurrentSiteCrawls = 1                       // Only crawl a single site at a time
-                        // ? MaxConcurrentThreads = 8                     // Logical processor count to avoid cpu thrashing
-                    };
-
-                    // ! Log.Logger.Information("TEST: " + parsedArgs.InputFile);
-
-                    if (parsedArgs.InputFile == null)
-                    {
-                        // THIS IS -S
-                        await DataScraper.Crawl(crawlConfig_RecursiveCrawl, handler, parsedArgs.StartingUri);
+                        await DataScraper.Crawl(crawlConfig_RecursiveCrawl, handler, parsedArgs.handlerType, parsedArgs.StartingUri);
                     }
-                    else
+                    else // THIS IS "--file"
                     {
                         string inputFilePath = @parsedArgs.InputFile;
 
@@ -188,52 +150,31 @@ namespace ScrapeAndCrawl
                         for (int i = 0; i < sitesToCrawl.Count; i++)
                         {
                             // Crawl
-                            await DataScraper.Crawl(crawlConfig_RecursiveCrawl, handler, sitesToCrawl[i]);
+                            await DataScraper.Crawl(crawlConfig_RecursiveCrawl, handler, parsedArgs.handlerType, sitesToCrawl[i]);
                         }
                     }
+                    // * ==========================================================================
 
-                    // Check if cached Data
+                    // Check if any cached data exists
                     if (DataScraper.dataDocuments.Count > 0)
                     {
+                        return;
+
                         Log.Logger.Debug("Number of documents generated: " + DataScraper.dataDocuments.Count.ToString());
-                        // Fetch data
+
+                        // Setup connection with MongoDB database
                         var client = new MongoClient("mongodb+srv://test-user_01:vVzppZ1Sz6PzE3Mx@cluster0.bvnvt.mongodb.net/Cluster0?retryWrites=true&w=majority");
                         var database = client.GetDatabase("test");
                         var collection = database.GetCollection<BsonDocument>("Test Collection [wikipedia]");
-                        for (int i = 0; i < DataScraper.dataDocuments.Count; i++)
-                        {
-                            // ? Log.Logger.Information(DataScraper.dataDocuments[i].ToJson());
-                            // --TODO mongoDB add document ( DataScraper.dataDocuments[i])
-                            // --TODO determine what collection to place document in -- based on cli flag? 
-                            //if server info 
-                                //call server info parse function
 
-                            
-
-
-                            // --TODO - figure out a better way to handle this
-                            // if (database.GetCollection<BsonDocument>("Test Collection [wikipedia]").Exists())
-                            // {
-
-                            // }
-                            // else
-                            //    database.CreateCollection("Test Collection [wikipedia]");
-
-                            if(collection != null)
-                            {
-                                //TODO: Make InsertMany and take out of forloop
-                                await collection.InsertOneAsync(DataScraper.dataDocuments[i]);
-                            }
-
-                        }
+                        await collection.InsertManyAsync(DataScraper.dataDocuments);
                     }
                 }
 
-                    // var client = new MongoClient("mongodb+srv://<username>:<password>@<cluster-address>/test?w=majority");
-                    // var database = client.GetDatabase("test");
-                    //Stop Torsharp
+                    // Stop the TorSharp tools so that the proxy is no longer listening on the configured port.
                     proxy.Stop();
             }
+            // * ----------------------------------------------------------------------------------
         }
 
         // ========================================================================================
@@ -246,6 +187,70 @@ namespace ScrapeAndCrawl
         // ========================================================================================
 
         /// <summary>
+        /// Sets up Logger in Serilog.
+        /// </summary>
+        static void SetupLogger()
+        {
+            // "Log" from Serilog namespace
+            // Configure the logging tool for nice console logging (formatted printing)
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Debug()              // Write up to Debug level logging
+                .WriteTo.Console()                 // Write to console
+                .WriteTo.File("./log/log.txt")     // Write to a log file
+                .CreateLogger();                   // Instantiate the Logger
+        }
+
+        /// <summary> TODO: add description. </summary>
+        static void SetupParser(string[] args)
+        {
+            // Uses CommandLine to parse predefined command line args
+            Parser.Default.ParseArguments<Options>(args)
+                .WithParsed<Options>(ParseSuccessHandler)
+                .WithNotParsed<Options>(ParseErrorHandler);
+
+            // "parsedArgs" static member contains parsed command line args
+        }
+
+        /// <summary> This function just exists to move this step out of main... </summary>
+        static TorSharpSettings SetupTorSharpSettings()
+        {
+            return new TorSharpSettings
+            {
+                    ZippedToolsDirectory = Path.Combine(Path.GetTempPath(), "TorZipped"),
+                    ExtractedToolsDirectory = Path.Combine(Path.GetTempPath(), "TorExtracted"),
+                    PrivoxySettings = { Port = 1337 },
+                    TorSettings =
+                    {
+                        SocksPort = 1338,
+                        ControlPort = 1339,
+                        ControlPassword = "foobar",
+                    },
+            };
+        }
+
+        /// <summary>
+        /// Setups up torsharp "tools".
+        /// </summary>
+        static async Task SetupTorSharpTools(TorSharpSettings settings)
+        {
+            using (HttpClient hc = new HttpClient())
+            {
+                var fetcher = new TorSharpToolFetcher(settings, hc);
+                var updates = await fetcher.CheckForUpdatesAsync();
+
+                Log.Logger.Debug($"Current Privoxy: {updates.Privoxy.LocalVersion?.ToString() ?? "(none)"}");
+                Log.Logger.Debug($"Latest Privoxy: {updates.Privoxy.LatestDownload.Version}");
+                Log.Logger.Debug($"Current Tor: {updates.Tor.LocalVersion?.ToString() ?? "(none)"}");
+                Log.Logger.Debug($"Latest Tor: {updates.Tor.LatestDownload.Version}");
+
+                if (updates.HasUpdate)
+                {
+                    await fetcher.FetchAsync(updates);
+                }
+            }
+        }
+
+        /// <summary>
         /// Handles parsed "options" if the Parser parses succesfully.
         /// </summary>
         /// <param name="options"> Contains the parsed arguement data. </param>
@@ -254,6 +259,11 @@ namespace ScrapeAndCrawl
             if (options.StartingUri != null || options.StartingUri != "")
             {
                 Log.Logger.Information("Starting Crawl From: " + options.StartingUri);
+            }
+
+            if (options.handlerType != 0)
+            {
+                Log.Logger.Debug("Handler Type: " + options.handlerType.ToString());
             }
 
             // Store parsed args in static class reference defined above
