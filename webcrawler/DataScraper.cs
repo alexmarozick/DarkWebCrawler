@@ -28,21 +28,16 @@ using MongoDB.Bson;
 using HtmlAgilityPack;
 
 //JSON 
-using System.Text.Json;
-using System.Text.Json.Serialization;
+// using System.Text.Json;
+// using System.Text.Json.Serialization;
 
+// ScrapeAndCrawl
+using ScrapeAndCrawl.Extensions;
 #endregion
 
 
 namespace ScrapeAndCrawl
 {
-
-    public static class Constants
-    {
-        public static string PlaceNamesTXT = "./data_lists/place_names.txt";
-        public static string UKUSPlaceNamesTXT = "./data_lists/uk_us_cities.txt";
-        public static string DefaultIgnoreWordsTXT = "./data_lists/default_ignore_words.txt";
-    }
 
     /// <summary>
     /// Utilizing AbotX (for js rendering) this object scrapes specified
@@ -123,25 +118,27 @@ namespace ScrapeAndCrawl
             // this returns a list of parsed out text content from the raw html
             var parsedText = ParseRawHTML(rawPageText);
 
-            // Here I parse out the website's title ----------------------
-            var htmldoc = new HtmlDocument();
-            htmldoc.LoadHtml(rawPageText);
+            Log.Logger.Debug("Parsed Text Content:");
+            foreach (var item in parsedText)
+            {
+                Log.Logger.Debug(item.ToString());
+            }
 
-            var titlenode = htmldoc.DocumentNode.SelectSingleNode("//title");
-            var siteTitle = titlenode.InnerText;
-            // -----------------------------------------------------------
+            string siteTitle = ParseOutWebpageTitle(rawPageText);
 
             // checks parsedText against list of keywords
             // keywords generated from txt file
             // returns dict of keywords found, how many times found
-            var desiredWords = ExcludeWords(parsedText,Constants.DefaultIgnoreWordsTXT);
+            var desiredWords = ExcludeWords(parsedText, Constants.DefaultIgnoreWordsTXT);
+
             // var dict = GetWordCount(desiredWords, Constants.PlaceNamesTXT);
             var dict = GetWordCount(desiredWords);
 
-            foreach (var entry in dict)
-            {
-                Log.Logger.Debug(entry.Key + " : " + entry.Value);
-            }
+            // Log.Logger.Debug("Word Frequency:");
+            // foreach (var entry in dict)
+            // {
+            //     Log.Logger.Debug(entry.Key + " : " + entry.Value);
+            // }
 
             // We only want to create and add a bson doc to the list if we
             // actually found some of the data we are looking for
@@ -171,24 +168,45 @@ namespace ScrapeAndCrawl
             // this returns a list of parsed out text content from the raw html
             var parsedText = ParseRawHTML(rawPageText);
 
-            // Here I parse out the website's title ----------------------
-            var htmldoc = new HtmlDocument();
-            htmldoc.LoadHtml(rawPageText);
+            // Log.Logger.Debug("Parsed Text Content:");
+            // foreach (var item in parsedText)
+            // {
+            //     Log.Logger.Debug(item.ToString());
+            // }
 
-            var titlenode = htmldoc.DocumentNode.SelectSingleNode("//title");
-            var siteTitle = titlenode.InnerText;
-            // -----------------------------------------------------------
+            string siteTitle = ParseOutWebpageTitle(rawPageText);
 
             // checks parsedText against list of keywords
             // keywords generated from txt file
-            // returns dict of keywords found, how many times found
-            var desiredWords = ExcludeWords(parsedText,Constants.DefaultIgnoreWordsTXT);
-            // var dict = GetWordCount(desiredWords, Constants.PlaceNamesTXT);
-            var dict = GetWordCount(desiredWords);
+            // returns dict of (keywords found, how many times found)
+            // var desiredWords = ExcludeWords(parsedText, Constants.DefaultIgnoreWordsTXT);
 
-            // TODO
+            // var dict = GetWordCount(desiredWords, Constants.PlaceNamesTXT);
+            // var dict = GetWordCount(desiredWords, Constants.WikiTestListTXT);
+
+            // Dictionary containing keywords desired, and a list of all contexts in which they were used
+            Dictionary<string, Pair<int, List<string>>> contextCache = GetWordCountAndContext(parsedText, Constants.WikiTestListTXT);
+
+            Log.Logger.Debug("Word Frequency:");
+            foreach (var entry in contextCache)
+            {
+                Log.Logger.Debug("KEYWORD - " + entry.Key + ":");
+                Log.Logger.Debug(entry.Value.Item1.ToString());
+                Log.Logger.Debug("keyword context:");
+                for (var i = 0; i < entry.Value.Item2.Count; i++)
+                {
+                    Log.Logger.Debug(entry.Value.Item2[i]);
+                }
+            }
         }
 
+        /// <summary>
+        /// Parses out text content from raw html using xpath + HTMLAgilityPack
+        /// </summary>
+        /// <returns>
+        /// List of strings, where each string is the text content of a node in the html doc.
+        /// Here a node is an html tag. 
+        /// </returns>
         private static List<string> ParseRawHTML(string rawHTML)
         {
             List<string> parsed = new List<string>();
@@ -236,6 +254,23 @@ namespace ScrapeAndCrawl
         }
 
         /// <summary>
+        /// Parses out webpage title using xpath + HTMLAgilityPack
+        /// </summary>
+        /// <returns> String containing the title of a webpage. </returns>
+        private static string ParseOutWebpageTitle(string rawPageText)
+        {
+            string result = "";
+
+            var htmldoc = new HtmlDocument();
+            htmldoc.LoadHtml(rawPageText);
+
+            var titlenode = htmldoc.DocumentNode.SelectSingleNode("//title");
+            result = titlenode.InnerText;
+
+            return result;
+        }
+
+        /// <summary>
         /// This is an O(N^2) algorithm for counting number of occurances of certain keywords
         /// </summary>
         /// <returns> Dictionary of (string, int) value pairs </returns>
@@ -266,10 +301,11 @@ namespace ScrapeAndCrawl
 
             foreach(var word in parsedText)
             {
+                // ! Log.Logger.Debug(word);
+
                 if (keywords == null)
                 {
                     wordInstanceCount[word] = wordInstanceCount.ContainsKey(word) ? wordInstanceCount[word] + 1 : 1;
-
                 }
                 else
                 { 
@@ -280,6 +316,83 @@ namespace ScrapeAndCrawl
                 }
             }
             return wordInstanceCount;
+        }
+
+        private static Dictionary<string, Pair<int, List<string>>> GetWordCountAndContext(List<string> parsedText, string keywords = null)
+        {
+            Dictionary<string, Pair<int, List<string>>> result = new Dictionary<string, Pair<int, List<string>>>();
+
+            // foreach (var item in result)
+            // {
+            //     item.Item2 = new List<string>();
+            // }
+
+            // Create a Hashset of keywords to check against where ...
+            // * each key contains only the chars of the keyword
+            // * each key is NOT null or empty
+            //if type == string (file path) then do : 
+             HashSet<string> keywordsSet = new HashSet<string>();
+            if (keywords != null){
+                keywordsSet = new HashSet<string>(
+                File.ReadLines(keywords)
+                .Select(keyword => keyword.Trim().ToLower())
+                .Where(keyword => !string.IsNullOrEmpty(keyword)),
+                StringComparer.OrdinalIgnoreCase
+                );
+
+            }
+
+            // Tracks each found word
+            HashSet<string> foundWords = new HashSet<string>();
+
+            foreach(var str in parsedText)
+            {
+                foreach(var word in str.Split(' '))
+                {
+
+                    if (keywords == null)
+                    {
+                        if (result.ContainsKey(word))
+                        {
+                            result[word].Item1++;
+
+                            if (!result[word].Item2.Contains(str))
+                                result[word].Item2.Add(str);
+                        }
+                        else
+                        {
+                            result[word].Item1 = 1;
+                            result[word].Item2.Add(str);
+                        }
+                    }
+                    else
+                    {
+                        if (keywordsSet.Contains(word))
+                        {
+                            if (result.ContainsKey(word))
+                            {
+                                result[word].Item1++;
+
+                                if (!result[word].Item2.Contains(str))
+                                    result[word].Item2.Add(str);
+                            }
+                            else
+                            {
+                                var newEntry = new Pair<int, List<string>>();
+
+                                newEntry.Item1 = 1;
+                                newEntry.Item2 = new List<string>();
+
+                                newEntry.Item2.Add(str);
+
+                                result[word] = newEntry;
+                            }
+                        }
+                    }
+                }
+            }
+
+            return result;
         }
 
         /// <summary> TODO: add description for this method </summary>

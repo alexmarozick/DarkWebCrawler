@@ -36,19 +36,15 @@ using MongoDB.Driver;
 
 //torSharp 
 using Knapcode.TorSharp;
+
+
+// Scrape And Crawl
+using ScrapeAndCrawl.Extensions;
 #endregion
 
 
 namespace ScrapeAndCrawl
 {
-
-    /// <summary> Helpful for not mispelling handler types. </summary>
-    public enum PageHandlerType
-    {
-        NULL = 0,
-        wordFreq = 1,
-        sentAnal = 2
-    }
 
 #region CMD arg Parser
 
@@ -128,7 +124,7 @@ namespace ScrapeAndCrawl
                     
                     // * SETUP AND EXECUTE CRAWLER ================================================
                     // Setup Crawler configuration
-                    CrawlConfigurationX crawlConfig_RecursiveCrawl = new CrawlConfigurationX
+                    CrawlConfigurationX crawlConfig = new CrawlConfigurationX
                     {
                         MaxPagesToCrawl = 1,                               // Number of sites to crawl
                         IsJavascriptRenderingEnabled = true,               // Should crawler render JS?
@@ -139,7 +135,7 @@ namespace ScrapeAndCrawl
 
                     if (parsedArgs.InputFile == null) // THIS IS "-s"
                     {
-                        await DataScraper.Crawl(crawlConfig_RecursiveCrawl, handler, parsedArgs.handlerType, parsedArgs.StartingUri);
+                        await DataScraper.Crawl(crawlConfig, handler, parsedArgs.handlerType, parsedArgs.StartingUri);
                     }
                     else // THIS IS "--file"
                     {
@@ -150,7 +146,7 @@ namespace ScrapeAndCrawl
                         for (int i = 0; i < sitesToCrawl.Count; i++)
                         {
                             // Crawl
-                            await DataScraper.Crawl(crawlConfig_RecursiveCrawl, handler, parsedArgs.handlerType, sitesToCrawl[i]);
+                            await DataScraper.Crawl(crawlConfig, handler, parsedArgs.handlerType, sitesToCrawl[i]);
                         }
                     }
                     // * ==========================================================================
