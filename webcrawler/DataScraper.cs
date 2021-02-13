@@ -168,6 +168,12 @@ namespace ScrapeAndCrawl
             // this returns a list of parsed out text content from the raw html
             var parsedText = ParseRawHTML(rawPageText);
 
+            if (parsedText == null)
+            {
+                Log.Logger.Debug("WARNING: \"parsedText\" is null after parsing.");
+                return;
+            }
+
             // Log.Logger.Debug("Parsed Text Content:");
             // foreach (var item in parsedText)
             // {
@@ -176,28 +182,26 @@ namespace ScrapeAndCrawl
 
             string siteTitle = ParseOutWebpageTitle(rawPageText);
 
-            // checks parsedText against list of keywords
-            // keywords generated from txt file
-            // returns dict of (keywords found, how many times found)
-            // var desiredWords = ExcludeWords(parsedText, Constants.DefaultIgnoreWordsTXT);
-
-            // var dict = GetWordCount(desiredWords, Constants.PlaceNamesTXT);
-            // var dict = GetWordCount(desiredWords, Constants.WikiTestListTXT);
-
             // Dictionary containing keywords desired, and a list of all contexts in which they were used
             Dictionary<string, Pair<int, List<string>>> contextCache = GetWordCountAndContext(parsedText, Constants.WikiTestListTXT);
 
-            Log.Logger.Debug("Word Frequency:");
-            foreach (var entry in contextCache)
-            {
-                Log.Logger.Debug("KEYWORD - " + entry.Key + ":");
-                Log.Logger.Debug(entry.Value.Item1.ToString());
-                Log.Logger.Debug("keyword context:");
-                for (var i = 0; i < entry.Value.Item2.Count; i++)
-                {
-                    Log.Logger.Debug(entry.Value.Item2[i]);
-                }
-            }
+            // ! Bellow commented code was to print out "contextCache"
+            // Log.Logger.Debug("Word Frequency:");
+            // foreach (var entry in contextCache)
+            // {
+            //     Log.Logger.Debug("KEYWORD - " + entry.Key + ":");
+            //     Log.Logger.Debug(entry.Value.Item1.ToString());
+            //     Log.Logger.Debug("keyword context:");
+            //     for (var i = 0; i < entry.Value.Item2.Count; i++)
+            //     {
+            //         Log.Logger.Debug(entry.Value.Item2[i]);
+            //     }
+            // }
+
+
+            // TODO: Sort contextCache dict
+
+            // TODO: For each item in dict: generate word freq for item's context list
         }
 
         /// <summary>
@@ -213,7 +217,10 @@ namespace ScrapeAndCrawl
 
             var htmlDoc = new HtmlDocument();
             htmlDoc.LoadHtml(rawHTML);
+
             var unwantedNodes = htmlDoc.DocumentNode.SelectNodes("//form");
+
+            // ! Log.Logger.Debug("-----TEST-----\n" + htmlDoc.ParsedText);
 
             if (unwantedNodes != null)
             {
@@ -224,8 +231,14 @@ namespace ScrapeAndCrawl
             }
 
             // unwantedNodes.Insert(htmlDoc.DocumentNode.)
-            var node = htmlDoc.DocumentNode.SelectSingleNode("//body");
-            foreach (var nNode in node.Descendants())
+            var htmlBody = htmlDoc.DocumentNode.SelectSingleNode("//body");
+
+            if (htmlBody == null)
+                return null;
+
+            // Log.Logger.Debug(htmlBody.InnerText);
+
+            foreach (var nNode in htmlBody.Descendants())
             {
                 if (nNode.NodeType == HtmlNodeType.Text)
                 {
@@ -250,7 +263,31 @@ namespace ScrapeAndCrawl
                     }         
                 }
             }
+
             return parsed;
+        }
+
+        /// <summary>
+        /// TODO: function description
+        /// </summary>
+        static List<string> ParseRawHTML_text(string rawPageText, string xpathQuery)
+        {
+            List<string> result = new List<string>();
+
+            HtmlDocument htmlDoc = new HtmlDocument();
+            htmlDoc.LoadHtml(rawPageText);
+
+            var nodesToParse = htmlDoc.DocumentNode.SelectNodes(xpathQuery);
+
+            if (nodesToParse != null)
+            {
+                foreach (var node in nodesToParse)
+                {
+                    // TODO
+                }
+            }
+
+            return result;
         }
 
         /// <summary>
