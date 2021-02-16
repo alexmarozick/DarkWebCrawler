@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Net.Http;
 using System.Linq;
+
 // Abot2
 using Abot2.Core;      // Core components <change this comment later this is a bad description>
 using Abot2.Crawler;   // Namespace where Crawler objects are defined
@@ -197,11 +198,24 @@ namespace ScrapeAndCrawl
             //         Log.Logger.Debug(entry.Value.Item2[i]);
             //     }
             // }
-
-
             // TODO: Sort contextCache dict
-
+            //make list from dict to sort
+            var dictList = contextCache.ToList();
+            //.Sort takes a comparison operator
+            //Comparison(x,y) -> less than 0 if x < y, 0 if equal, greater than 0 if x > y
+            //for all keyValuePairs in dict, sort based on the frequency count 
+            dictList.Sort((pair1,pair2) =>  pair1.Value.Item1 > pair2.Value.Item1 ? -1 : 1);
             // TODO: For each item in dict: generate word freq for item's context list
+            for (int i = 0; i < 10; i++)
+            {
+                //the word we want to check context for
+                Log.Logger.Debug("Getting Context words for " + dictList[i].Key.ToString());
+                //the context sentences 
+                var contextWordCount = GetWordCount(dictList[i].Value.Item2);
+                foreach(var kvpair in contextWordCount){
+                    Log.Logger.Debug(kvpair.ToString());
+                }
+            }
         }
 
         /// <summary>

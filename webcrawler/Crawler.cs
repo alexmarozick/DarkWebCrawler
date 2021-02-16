@@ -61,8 +61,7 @@ namespace ScrapeAndCrawl
 
         [Option('h', "handler", Group = "Page Handler", HelpText = "Specify page handler type:\n* wordFrequency\n* sentimentAnalysis")]
         public PageHandlerType handlerType { get; set; }
-    }
-
+    
 #endregion
 
 #region Crawler Class
