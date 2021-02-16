@@ -203,16 +203,32 @@ namespace ScrapeAndCrawl
             var dictList = contextCache.ToList();
             //.Sort takes a comparison operator
             //Comparison(x,y) -> less than 0 if x < y, 0 if equal, greater than 0 if x > y
-            //for all keyValuePairs in dict, sort based on the frequency count 
+            //for all keyValuePairs in dict, sort based on the frequency count
+            //pair: word : list of 
+
             dictList.Sort((pair1,pair2) =>  pair1.Value.Item1 > pair2.Value.Item1 ? -1 : 1);
+
+            // foreach(var pair in dictList)
+            // {
+            //     Log.Logger.Debug(pair.ToString());
+            //     Log.Logger.Debug(pair.Value.Item1.ToString());
+            //     foreach (var item in pair.Value.Item2)
+            //     {
+            //         Log.Logger.Debug("item: " + item);
+            //     }
+            // }
+
             // TODO: For each item in dict: generate word freq for item's context list
-            for (int i = 0; i < 10; i++)
+
+            var numWords = dictList.Count > 10 ? 10 : dictList.Count;
+            for (int i = 0; i < numWords; i++)
             {
                 //the word we want to check context for
                 Log.Logger.Debug("Getting Context words for " + dictList[i].Key.ToString());
                 //the context sentences 
                 var contextWordCount = GetWordCount(dictList[i].Value.Item2);
-                foreach(var kvpair in contextWordCount){
+                foreach(var kvpair in contextWordCount)
+                {
                     Log.Logger.Debug(kvpair.ToString());
                 }
             }
@@ -279,6 +295,31 @@ namespace ScrapeAndCrawl
             }
 
             return parsed;
+        }
+
+        /// <summary>
+        /// TODO: function description
+        /// </summary>
+        static List<string> ParseRawHTML_bodyText(string rawPageHtml)
+        {
+            // List<string> result = new List<string>();
+
+            // Load html into document ----------
+            HtmlDocument htmlDoc = new HtmlDocument();
+            htmlDoc.LoadHtml(rawPageHtml);
+            // ----------------------------------
+
+            var bodyNode = htmlDoc.DocumentNode.SelectSingleNode("//body");
+
+            List<string> result = new List<string>(bodyNode.InnerHtml.Split('.'));
+
+            Log.Logger.Debug("TESTING NEW HTML BODY PARSE");
+            foreach (var item in result)
+            {
+                Log.Logger.Debug(item);
+            }
+
+            return result;
         }
 
         /// <summary>
@@ -448,7 +489,7 @@ namespace ScrapeAndCrawl
 
         /// <summary> TODO: add description for this method </summary>
         private static List<string> ExcludeWords(List<string> parsedText, string toIgnore)
-        {
+        {   
             // Define a set of words that will be excluded in general
             HashSet<string> ignoredSet = new HashSet<string>(
                 File.ReadLines(Constants.DefaultIgnoreWordsTXT)
