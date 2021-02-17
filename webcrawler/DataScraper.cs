@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Net.Http;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 // Abot2
 using Abot2.Core;      // Core components <change this comment later this is a bad description>
@@ -167,7 +168,8 @@ namespace ScrapeAndCrawl
             var rawPageText = e.CrawledPage.Content.Text;
 
             // this returns a list of parsed out text content from the raw html
-            var parsedText = ParseRawHTML(rawPageText);
+            // var parsedText = ParseRawHTML(rawPageText);
+            var parsedText = ParseRawHTML_bodyText(rawPageText);
 
             if (parsedText == null)
             {
@@ -198,38 +200,33 @@ namespace ScrapeAndCrawl
             //         Log.Logger.Debug(entry.Value.Item2[i]);
             //     }
             // }
+
             // TODO: Sort contextCache dict
+
             //make list from dict to sort
             var dictList = contextCache.ToList();
+
             //.Sort takes a comparison operator
             //Comparison(x,y) -> less than 0 if x < y, 0 if equal, greater than 0 if x > y
             //for all keyValuePairs in dict, sort based on the frequency count
             //pair: word : list of 
-
             dictList.Sort((pair1,pair2) =>  pair1.Value.Item1 > pair2.Value.Item1 ? -1 : 1);
-
-            // foreach(var pair in dictList)
-            // {
-            //     Log.Logger.Debug(pair.ToString());
-            //     Log.Logger.Debug(pair.Value.Item1.ToString());
-            //     foreach (var item in pair.Value.Item2)
-            //     {
-            //         Log.Logger.Debug("item: " + item);
-            //     }
-            // }
 
             // TODO: For each item in dict: generate word freq for item's context list
 
             var numWords = dictList.Count > 10 ? 10 : dictList.Count;
+
             for (int i = 0; i < numWords; i++)
             {
                 //the word we want to check context for
                 Log.Logger.Debug("Getting Context words for " + dictList[i].Key.ToString());
+
                 //the context sentences 
                 var contextWordCount = GetWordCount(dictList[i].Value.Item2);
                 foreach(var kvpair in contextWordCount)
                 {
-                    Log.Logger.Debug(kvpair.ToString());
+                    if (kvpair.Value > 1)
+                        Log.Logger.Debug("Key: " + kvpair.Key.ToString() + "\n" + "Val: " + kvpair.Value.ToString());
                 }
             }
         }
@@ -298,7 +295,8 @@ namespace ScrapeAndCrawl
         }
 
         /// <summary>
-        /// TODO: function description
+        /// Pareses the raw html by extracting the body node and spliting
+        /// the text at '.' storing the result in a List of strings.
         /// </summary>
         static List<string> ParseRawHTML_bodyText(string rawPageHtml)
         {
@@ -311,36 +309,20 @@ namespace ScrapeAndCrawl
 
             var bodyNode = htmlDoc.DocumentNode.SelectSingleNode("//body");
 
-            List<string> result = new List<string>(bodyNode.InnerHtml.Split('.'));
+            List<string> result = new List<string>(bodyNode.InnerText.Split('.'));
 
-            Log.Logger.Debug("TESTING NEW HTML BODY PARSE");
-            foreach (var item in result)
+            // Replace '\n' in each line
+            for (int i = 0; i < result.Count; i++)
             {
-                Log.Logger.Debug(item);
+                // result[i] = Regex.Replace(result[i], "/[\n\n]/", " ");
+                result[i].Replace("\n", " ");
             }
 
-            return result;
-        }
-
-        /// <summary>
-        /// TODO: function description
-        /// </summary>
-        static List<string> ParseRawHTML_text(string rawPageText, string xpathQuery)
-        {
-            List<string> result = new List<string>();
-
-            HtmlDocument htmlDoc = new HtmlDocument();
-            htmlDoc.LoadHtml(rawPageText);
-
-            var nodesToParse = htmlDoc.DocumentNode.SelectNodes(xpathQuery);
-
-            if (nodesToParse != null)
-            {
-                foreach (var node in nodesToParse)
-                {
-                    // TODO
-                }
-            }
+            // Log.Logger.Debug("TESTING NEW HTML BODY PARSE");
+            // foreach (var item in result)
+            // {
+            //     Log.Logger.Debug(item);
+            // }
 
             return result;
         }
@@ -391,19 +373,30 @@ namespace ScrapeAndCrawl
             Dictionary<string, int> wordInstanceCount = new Dictionary<string, int>();
             List<string> words = new List<string>(); // TODO not used
 
-            foreach(var word in parsedText)
+            for (int i = 0; i < parsedText.Count; i ++)
             {
-                // ! Log.Logger.Debug(word);
-
-                if (keywords == null)
+                foreach(string word in parsedText[i].Split(' '))
                 {
-                    wordInstanceCount[word] = wordInstanceCount.ContainsKey(word) ? wordInstanceCount[word] + 1 : 1;
-                }
-                else
-                { 
-                    if (keywordsSet.Contains(word))
+                    // ! Log.Logger.Debug("WORD : " + word);
+
+                    // Trims out all non letter characters from the word
+                    var trimmedWord = word;
+                    trimmedWord = new string((
+                        from c in trimmedWord
+                        where char.IsLetterOrDigit(c)
+                        select c
+                    ).ToArray());
+
+                    if (keywords == null)
                     {
-                        wordInstanceCount[word] = wordInstanceCount.ContainsKey(word) ? wordInstanceCount[word] + 1 : 1;
+                        wordInstanceCount[trimmedWord] = wordInstanceCount.ContainsKey(trimmedWord) ? wordInstanceCount[trimmedWord] + 1 : 1;
+                    }
+                    else
+                    { 
+                        if (keywordsSet.Contains(trimmedWord))
+                        {
+                            wordInstanceCount[trimmedWord] = wordInstanceCount.ContainsKey(trimmedWord) ? wordInstanceCount[trimmedWord] + 1 : 1;
+                        }
                     }
                 }
             }
@@ -413,11 +406,6 @@ namespace ScrapeAndCrawl
         private static Dictionary<string, Pair<int, List<string>>> GetWordCountAndContext(List<string> parsedText, string keywords = null)
         {
             Dictionary<string, Pair<int, List<string>>> result = new Dictionary<string, Pair<int, List<string>>>();
-
-            // foreach (var item in result)
-            // {
-            //     item.Item2 = new List<string>();
-            // }
 
             // Create a Hashset of keywords to check against where ...
             // * each key contains only the chars of the keyword

@@ -38,5 +38,22 @@ namespace ScrapeAndCrawl.Extensions
         public static string UKUSPlaceNamesTXT =     "./data_lists/uk_us_cities.txt";
         public static string DefaultIgnoreWordsTXT = "./data_lists/default_ignore_words.txt";
         public static string WikiTestListTXT =       "./data_lists/wiki_test_list.txt";
+        public static char[] CharsToTrim = new char[]
+        {
+            '\"',
+            '\'',
+            '(',
+            ')',
+            '#',
+            '$',
+            '%',
+            '^',
+            '&',
+            '|',
+            ';',
+            ':',
+            '`',
+            '~'
+        };
     }
 }
