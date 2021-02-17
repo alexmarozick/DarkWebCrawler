@@ -186,7 +186,7 @@ namespace ScrapeAndCrawl
             string siteTitle = ParseOutWebpageTitle(rawPageText);
 
             // Dictionary containing keywords desired, and a list of all contexts in which they were used
-            Dictionary<string, Pair<int, List<string>>> contextCache = GetWordCountAndContext(parsedText, Constants.WikiTestListTXT);
+            Dictionary<string, Pair<int, List<string>>> contextCache = GetWordCountAndContext(parsedText, Constants.DefaultIgnoreWordsTXT);
 
             // ! Bellow commented code was to print out "contextCache"
             // Log.Logger.Debug("Word Frequency:");
@@ -221,8 +221,19 @@ namespace ScrapeAndCrawl
                 //the word we want to check context for
                 Log.Logger.Debug("Getting Context words for " + dictList[i].Key.ToString());
 
-                //the context sentences 
-                var contextWordCount = GetWordCount(dictList[i].Value.Item2);
+                Log.Logger.Debug("KEYWORD - " + dictList[i].Key + ":");
+                Log.Logger.Debug(dictList[i].Value.Item1.ToString());
+                Log.Logger.Debug("keyword context:");
+                for (var j = 0; j < dictList[i].Value.Item2.Count; j++)
+                {
+                    Log.Logger.Debug(dictList[i].Value.Item2[j]);
+                }
+
+                // Excludes words we don't care about
+                var desiredWords = ExcludeWords(dictList[i].Value.Item2);
+
+                //the context sentences
+                var contextWordCount = GetWordCount(desiredWords);
                 foreach(var kvpair in contextWordCount)
                 {
                     if (kvpair.Value > 1)
@@ -231,6 +242,8 @@ namespace ScrapeAndCrawl
             }
         }
 
+
+#region HTML Parsing
         /// <summary>
         /// Parses out text content from raw html using xpath + HTMLAgilityPack
         /// </summary>
@@ -343,6 +356,7 @@ namespace ScrapeAndCrawl
 
             return result;
         }
+#endregion
 
         /// <summary>
         /// This is an O(N^2) algorithm for counting number of occurances of certain keywords
@@ -403,60 +417,73 @@ namespace ScrapeAndCrawl
             return wordInstanceCount;
         }
 
-        private static Dictionary<string, Pair<int, List<string>>> GetWordCountAndContext(List<string> parsedText, string keywords = null)
+        /// <summary>
+        /// Similar to Get Word Count but also gets the context a word was used in.
+        /// </summary>
+        private static Dictionary<string, Pair<int, List<string>>> GetWordCountAndContext(List<string> parsedText, string toIgnore, string keywords = null)
         {
             Dictionary<string, Pair<int, List<string>>> result = new Dictionary<string, Pair<int, List<string>>>();
 
             // Create a Hashset of keywords to check against where ...
             // * each key contains only the chars of the keyword
             // * each key is NOT null or empty
-            //if type == string (file path) then do : 
-             HashSet<string> keywordsSet = new HashSet<string>();
+            HashSet<string> keywordsSet = new HashSet<string>();
             if (keywords != null){
                 keywordsSet = new HashSet<string>(
-                File.ReadLines(keywords)
-                .Select(keyword => keyword.Trim().ToLower())
-                .Where(keyword => !string.IsNullOrEmpty(keyword)),
-                StringComparer.OrdinalIgnoreCase
+                    File.ReadLines(keywords)
+                    .Select(keyword => keyword.Trim().ToLower())
+                    .Where(keyword => !string.IsNullOrEmpty(keyword) && !string.IsNullOrWhiteSpace(keyword)),
+                    StringComparer.OrdinalIgnoreCase
                 );
 
             }
 
+            HashSet<string> ignorewordsSet = new HashSet<string>();
+            if (toIgnore != null)
+            {
+                ignorewordsSet = new HashSet<string>(
+                    File.ReadLines(toIgnore)
+                    .Select(keyword => keyword.Trim().ToLower())
+                    .Where(keyword => !string.IsNullOrEmpty(keyword) && !string.IsNullOrWhiteSpace(keyword)),
+                    StringComparer.OrdinalIgnoreCase
+                );
+            }
+
             // Tracks each found word
             HashSet<string> foundWords = new HashSet<string>();
+
+            foreach (var item in parsedText)
+            {
+                Console.WriteLine($"\n{item}");
+            }
 
             foreach(var str in parsedText)
             {
                 foreach(var word in str.Split(' '))
                 {
 
+                    // Trims out all non letter characters from the word
+                    var trimmedWord = word;
+                    trimmedWord = new string((
+                        from c in trimmedWord
+                        where char.IsLetterOrDigit(c)
+                        select c
+                    ).ToArray());
+                    trimmedWord.Replace("\u200B", "");  // THIS IS TRYING TO GET RID OF zero width no-break space
+
                     if (keywords == null)
                     {
-                        if (result.ContainsKey(word))
+                        if (!ignorewordsSet.Contains(trimmedWord) &&
+                            trimmedWord.All(Char.IsLetterOrDigit))
                         {
-                            result[word].Item1++;
-
-                            if (!result[word].Item2.Contains(str))
-                                result[word].Item2.Add(str);
-                        }
-                        else
-                        {
-                            result[word].Item1 = 1;
-                            result[word].Item2.Add(str);
-                        }
-                    }
-                    else
-                    {
-                        if (keywordsSet.Contains(word))
-                        {
-                            if (result.ContainsKey(word))
+                            if (result.ContainsKey(trimmedWord))
                             {
-                                result[word].Item1++;
+                                result[trimmedWord].Item1++;
 
-                                if (!result[word].Item2.Contains(str))
-                                    result[word].Item2.Add(str);
+                                if (!result[trimmedWord].Item2.Contains(str))
+                                    result[trimmedWord].Item2.Add(str);
                             }
-                            else
+                            else if (trimmedWord.All(Char.IsLetterOrDigit))
                             {
                                 var newEntry = new Pair<int, List<string>>();
 
@@ -465,7 +492,33 @@ namespace ScrapeAndCrawl
 
                                 newEntry.Item2.Add(str);
 
-                                result[word] = newEntry;
+                                result[trimmedWord] = newEntry;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (keywordsSet.Contains(trimmedWord) && 
+                            !ignorewordsSet.Contains(trimmedWord) &&
+                            trimmedWord.All(Char.IsLetterOrDigit))
+                        {
+                            if (result.ContainsKey(trimmedWord))
+                            {
+                                result[trimmedWord].Item1++;
+
+                                if (!result[trimmedWord].Item2.Contains(str))
+                                    result[trimmedWord].Item2.Add(str);
+                            }
+                            else if (trimmedWord.All(Char.IsLetterOrDigit))
+                            {
+                                var newEntry = new Pair<int, List<string>>();
+
+                                newEntry.Item1 = 1;
+                                newEntry.Item2 = new List<string>();
+
+                                newEntry.Item2.Add(str);
+
+                                result[trimmedWord] = newEntry;
                             }
                         }
                     }
@@ -475,8 +528,8 @@ namespace ScrapeAndCrawl
             return result;
         }
 
-        /// <summary> TODO: add description for this method </summary>
-        private static List<string> ExcludeWords(List<string> parsedText, string toIgnore)
+        /// <summary> Used for Word Frequency. This method excludes words we should always ignore. </summary>
+        private static List<string> ExcludeWords(List<string> parsedText, string toIgnore=null)
         {   
             // Define a set of words that will be excluded in general
             HashSet<string> ignoredSet = new HashSet<string>(
@@ -485,18 +538,24 @@ namespace ScrapeAndCrawl
                 .Where(keyword => !string.IsNullOrEmpty(keyword)),
                 StringComparer.OrdinalIgnoreCase
             );
-            // string toIgnore is a file of words that are additive to the set of words already being excluded
-            HashSet<string> additiveIgnoredSet = new HashSet<string>(
-                // TODO maybe have a check if toIgnore is NULL
-                File.ReadLines(toIgnore)
-                .Select(keyword => keyword.Trim().ToLower())
-                .Where(keyword => !string.IsNullOrEmpty(keyword)),
-                StringComparer.OrdinalIgnoreCase
-            );
-            // TODO initialize dict to store data
-            Dictionary<string, int> wordInstanceCount = new Dictionary<string, int>();
 
-            ignoredSet.UnionWith(additiveIgnoredSet);
+            // string toIgnore is a file of words that are additive to the set of words already being excluded
+            HashSet<string> additiveIgnoredSet = new HashSet<string>();
+            if (toIgnore != null)
+            {
+                additiveIgnoredSet = new HashSet<string>(
+                    // TODO maybe have a check if toIgnore is NULL
+                    File.ReadLines(toIgnore)
+                    .Select(keyword => keyword.Trim().ToLower())
+                    .Where(keyword => !string.IsNullOrEmpty(keyword)),
+                    StringComparer.OrdinalIgnoreCase
+                );
+            }
+
+            // Dictionary<string, int> wordInstanceCount = new Dictionary<string, int>();
+
+            if (toIgnore != null)
+                ignoredSet.UnionWith(additiveIgnoredSet);
 
             List<string> desiredWords = new List<string>();
             // loop for parsing text
@@ -504,12 +563,21 @@ namespace ScrapeAndCrawl
             {
                 foreach(var word in str.Split(' '))
                 {
+                    // Trims out all non letter characters from the word
+                    var trimmedWord = word;
+                    trimmedWord = new string((
+                        from c in trimmedWord
+                        where char.IsLetterOrDigit(c)
+                        select c
+                    ).ToArray());
+                    trimmedWord.Replace("\u200B", "");  // THIS IS TRYING TO GET RID OF zero width no-break space
+
                     // if word is not contained within general set or within the additive one, might need a check if set is null but not sure
-                    if (!ignoredSet.Contains(word) && word.Any(x=>char.IsLetter(x)))
+                    if (!ignoredSet.Contains(trimmedWord) && trimmedWord.Any(Char.IsLetter))
                     {
                         // if (nodeText.Any( x => char.IsLetter(x)))  // makes sure word contains only letters
 
-                        desiredWords.Add(word);
+                        desiredWords.Add(trimmedWord);
                     }
                 }
             }
