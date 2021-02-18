@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Net.Http;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Text;
 
 // Abot2
 using Abot2.Core;      // Core components <change this comment later this is a bad description>
@@ -187,7 +188,11 @@ namespace ScrapeAndCrawl
 
             // Dictionary containing keywords desired, and a list of all contexts in which they were used
             Dictionary<string, Pair<int, List<string>>> contextCache = GetWordCountAndContext(parsedText, Constants.DefaultIgnoreWordsTXT);
-
+            // foreach(var key in contextCache.Keys)
+            // {
+            //     Log.Logger.Debug(key.ToString());
+            //     Log.Logger.Debug("IN RAW UNICODE" + Encoding.UTF8.GetBytes(key)[0].ToString());
+            // }
             // ! Bellow commented code was to print out "contextCache"
             // Log.Logger.Debug("Word Frequency:");
             // foreach (var entry in contextCache)
@@ -214,15 +219,26 @@ namespace ScrapeAndCrawl
 
             // TODO: For each item in dict: generate word freq for item's context list
 
-            var numWords = dictList.Count > 10 ? 10 : dictList.Count;
+            var ccBsonDoc = new BsonDocument
+            {
+                {"CommonWords", new BsonDocument()}
+            };
 
+            var numWords = dictList.Count > 10 ? 10 : dictList.Count;
             for (int i = 0; i < numWords; i++)
             {
                 //the word we want to check context for
-                Log.Logger.Debug("Getting Context words for " + dictList[i].Key.ToString());
-
+                Log.Logger.Debug("Getting Context words for " + dictList[i].Key);
+                if (dictList[i].Key == "")
+                {
+                    continue;
+                }
+                //word
                 Log.Logger.Debug("KEYWORD - " + dictList[i].Key + ":");
+                Log.Logger.Debug("IN RAW UNICODE" + Encoding.UTF8.GetBytes(dictList[i].Key)[0].ToString());
+                //numoccurances
                 Log.Logger.Debug(dictList[i].Value.Item1.ToString());
+        
                 Log.Logger.Debug("keyword context:");
                 for (var j = 0; j < dictList[i].Value.Item2.Count; j++)
                 {
@@ -233,12 +249,43 @@ namespace ScrapeAndCrawl
                 var desiredWords = ExcludeWords(dictList[i].Value.Item2);
 
                 //the context sentences
+                //number of occurances of context words for a given keyword
                 var contextWordCount = GetWordCount(desiredWords);
+
                 foreach(var kvpair in contextWordCount)
                 {
                     if (kvpair.Value > 1)
                         Log.Logger.Debug("Key: " + kvpair.Key.ToString() + "\n" + "Val: " + kvpair.Value.ToString());
                 }
+
+                BsonDocument commonWordsDoc = ccBsonDoc.GetElement("CommonWords").ToBsonDocument();
+                //dictList[i].Key the keyword
+                // dictList[i].Value pair: {number of occurances of keyword, list of sentences}
+
+                commonWordsDoc.Add(new BsonElement(
+                    dictList[i].Key,new BsonDocument
+                    {
+                        {"Count",dictList[i].Value.Item1},
+                        {"ContextSentences", new BsonArray(dictList[i].Value.Item2)},
+                        {"contextFrequency", new BsonDocument(contextWordCount)}
+                    }
+                ));
+
+                ccBsonDoc.SetElement(new BsonElement("CommonWords", commonWordsDoc));
+            }
+
+            // BSON doc
+            var bson = new BsonDocument
+            {
+                {"WebsiteTitle", siteTitle},
+                {"URL", e.CrawledPage.Uri.ToString()},
+                {"Raw", rawPageText},
+                {"SentimentAnalysis", ccBsonDoc}
+            };
+
+            if (bson != null)
+            {
+                dataDocuments.Add(bson);
             }
         }
 
@@ -469,12 +516,13 @@ namespace ScrapeAndCrawl
                         where char.IsLetterOrDigit(c)
                         select c
                     ).ToArray());
-                    trimmedWord.Replace("\u200B", "");  // THIS IS TRYING TO GET RID OF zero width no-break space
+                    // trimmedWord.Replace("\uFEFF", "");  // THIS IS TRYING TO GET RID OF zero width no-break space
 
                     if (keywords == null)
                     {
                         if (!ignorewordsSet.Contains(trimmedWord) &&
-                            trimmedWord.All(Char.IsLetterOrDigit))
+                            trimmedWord.All(Char.IsLetterOrDigit) && 
+                            (trimmedWord != "\uFEFF" || trimmedWord != ""))
                         {
                             if (result.ContainsKey(trimmedWord))
                             {
@@ -500,7 +548,8 @@ namespace ScrapeAndCrawl
                     {
                         if (keywordsSet.Contains(trimmedWord) && 
                             !ignorewordsSet.Contains(trimmedWord) &&
-                            trimmedWord.All(Char.IsLetterOrDigit))
+                            trimmedWord.All(Char.IsLetterOrDigit) &&
+                            (trimmedWord != "\uFEFF" || trimmedWord != ""))
                         {
                             if (result.ContainsKey(trimmedWord))
                             {
@@ -570,7 +619,7 @@ namespace ScrapeAndCrawl
                         where char.IsLetterOrDigit(c)
                         select c
                     ).ToArray());
-                    trimmedWord.Replace("\u200B", "");  // THIS IS TRYING TO GET RID OF zero width no-break space
+                    trimmedWord.Replace("\uFEFF", "");  // THIS IS TRYING TO GET RID OF zero width no-break space
 
                     // if word is not contained within general set or within the additive one, might need a check if set is null but not sure
                     if (!ignoredSet.Contains(trimmedWord) && trimmedWord.Any(Char.IsLetter))

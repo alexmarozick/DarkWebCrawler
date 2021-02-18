@@ -123,7 +123,7 @@ namespace ScrapeAndCrawl
                     CrawlConfigurationX crawlConfig = new CrawlConfigurationX
                     {
                         MaxPagesToCrawl = 1,                               // Number of sites to crawl
-                        IsJavascriptRenderingEnabled = true,               // Should crawler render JS?
+                        IsJavascriptRenderingEnabled = false,               // Should crawler render JS?
                         JavascriptRenderingWaitTimeInMilliseconds = 10000, // How long to wait for js to process 
                         MaxConcurrentSiteCrawls = 1,                       // Only crawl a single site at a time
                         MaxRetryCount = 3                                  // Retries to connect and crawl site 'x' times
@@ -150,14 +150,13 @@ namespace ScrapeAndCrawl
                     // Check if any cached data exists
                     if (DataScraper.dataDocuments.Count > 0)
                     {
-                        return;
 
                         Log.Logger.Debug("Number of documents generated: " + DataScraper.dataDocuments.Count.ToString());
 
                         // Setup connection with MongoDB database
                         var client = new MongoClient("mongodb+srv://test-user_01:vVzppZ1Sz6PzE3Mx@cluster0.bvnvt.mongodb.net/Cluster0?retryWrites=true&w=majority");
                         var database = client.GetDatabase("test");
-                        var collection = database.GetCollection<BsonDocument>("Test Collection [wikipedia]");
+                        var collection = database.GetCollection<BsonDocument>("onion-test-3");
 
                         await collection.InsertManyAsync(DataScraper.dataDocuments);
                     }
