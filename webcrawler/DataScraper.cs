@@ -206,8 +206,6 @@ namespace ScrapeAndCrawl
             //     }
             // }
 
-            // TODO: Sort contextCache dict
-
             //make list from dict to sort
             var dictList = contextCache.ToList();
 
@@ -217,14 +215,9 @@ namespace ScrapeAndCrawl
             //pair: word : list of 
             dictList.Sort((pair1,pair2) =>  pair1.Value.Item1 > pair2.Value.Item1 ? -1 : 1);
 
-            // TODO: For each item in dict: generate word freq for item's context list
+            var sentimentAnalysis = new BsonDocument();
 
-            var ccBsonDoc = new BsonDocument
-            {
-                {"CommonWords", new BsonDocument()}
-            };
-
-            var numWords = dictList.Count > 10 ? 10 : dictList.Count;
+            var numWords = dictList.Count > 50 ? 50 : dictList.Count;
             for (int i = 0; i < numWords; i++)
             {
                 //the word we want to check context for
@@ -258,20 +251,14 @@ namespace ScrapeAndCrawl
                         Log.Logger.Debug("Key: " + kvpair.Key.ToString() + "\n" + "Val: " + kvpair.Value.ToString());
                 }
 
-                BsonDocument commonWordsDoc = ccBsonDoc.GetElement("CommonWords").ToBsonDocument();
-                //dictList[i].Key the keyword
-                // dictList[i].Value pair: {number of occurances of keyword, list of sentences}
-
-                commonWordsDoc.Add(new BsonElement(
+                sentimentAnalysis.Add(new BsonElement(
                     dictList[i].Key,new BsonDocument
                     {
                         {"Count",dictList[i].Value.Item1},
                         {"ContextSentences", new BsonArray(dictList[i].Value.Item2)},
-                        {"contextFrequency", new BsonDocument(contextWordCount)}
+                        {"ContextWordFrequency", new BsonDocument(contextWordCount)}
                     }
                 ));
-
-                ccBsonDoc.SetElement(new BsonElement("CommonWords", commonWordsDoc));
             }
 
             // BSON doc
@@ -280,7 +267,7 @@ namespace ScrapeAndCrawl
                 {"WebsiteTitle", siteTitle},
                 {"URL", e.CrawledPage.Uri.ToString()},
                 {"Raw", rawPageText},
-                {"SentimentAnalysis", ccBsonDoc}
+                {"SentimentAnalysis", sentimentAnalysis}
             };
 
             if (bson != null)
