@@ -102,8 +102,6 @@ namespace ScrapeAndCrawl
                 await crawlerX.CrawlAsync(new Uri(uriToCrawl));
             }
         }
-        
-        // ? public static async Task CrawlWithSpecifiedConfig(CrawlConfigurationX configX, string uriToCrawlFrom) {}
 #endregion
 
 #region Private Class Methods
@@ -165,6 +163,22 @@ namespace ScrapeAndCrawl
         /// </summary>
         private static void SentimentAnalysisHandler(object sender, PageCrawlCompletedArgs e)
         {
+            CrawledPage crawledPage = e.CrawledPage;
+
+            if (e.CrawledPage.HttpResponseMessage.StatusCode != HttpStatusCode.OK)
+            {
+                Log.Logger.Debug("Crawl of page failed {0}", crawledPage.Uri.AbsoluteUri);
+                return;
+            }
+            else
+                Log.Logger.Debug("Crawl of page succeeded {0}", crawledPage.Uri.AbsoluteUri);
+
+            if (string.IsNullOrEmpty(crawledPage.Content.Text))
+            {
+                Log.Logger.Debug("Page had no content {0}", crawledPage.Uri.AbsoluteUri);
+                return;
+            }
+
             var httpStatus = e.CrawledPage.HttpResponseMessage.StatusCode;
             var rawPageText = e.CrawledPage.Content.Text;
 
@@ -209,10 +223,10 @@ namespace ScrapeAndCrawl
             //make list from dict to sort
             var dictList = contextCache.ToList();
 
-            //.Sort takes a comparison operator
-            //Comparison(x,y) -> less than 0 if x < y, 0 if equal, greater than 0 if x > y
-            //for all keyValuePairs in dict, sort based on the frequency count
-            //pair: word : list of 
+            // Sort takes a comparison operator
+            // Comparison(x,y) -> less than 0 if x < y, 0 if equal, greater than 0 if x > y
+            // for all keyValuePairs in dict, sort based on the frequency count
+            // pair: word : list of 
             dictList.Sort((pair1,pair2) =>  pair1.Value.Item1 > pair2.Value.Item1 ? -1 : 1);
 
             var sentimentAnalysis = new BsonDocument();
@@ -224,12 +238,14 @@ namespace ScrapeAndCrawl
                 Log.Logger.Debug("Getting Context words for " + dictList[i].Key);
                 if (dictList[i].Key == "")
                 {
-                    continue;
+                    continue;  // Skips the stupid empty string keyword problem we havn't fixed yet...
                 }
-                //word
+
+                // word
                 Log.Logger.Debug("KEYWORD - " + dictList[i].Key + ":");
                 Log.Logger.Debug("IN RAW UNICODE" + Encoding.UTF8.GetBytes(dictList[i].Key)[0].ToString());
-                //numoccurances
+
+                // num occurances
                 Log.Logger.Debug(dictList[i].Value.Item1.ToString());
         
                 Log.Logger.Debug("keyword context:");

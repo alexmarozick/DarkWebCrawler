@@ -109,11 +109,11 @@ namespace ScrapeAndCrawl
                 };
 
                 // using (handler)
-                using (var httpClient = new HttpClient(handler))
+                using (var httpClient = new HttpClient(handler, false))
                 {
                     var waiting = true;
                     while(waiting) {
-                        //block untill we wait for TorSharp Proxy to be configured
+                        // block untill we wait for TorSharp Proxy to be configured
                         await proxy.ConfigureAndStartAsync();
                         waiting = false;
                     }
@@ -122,8 +122,29 @@ namespace ScrapeAndCrawl
                     // Setup Crawler configuration
                     CrawlConfigurationX crawlConfig = new CrawlConfigurationX
                     {
+                        // Read up on what AutoThrottling and Decelerator is doing....
+                        // Also consider commenting them out...
+                        AutoThrottling = new AutoThrottlingConfig
+                        {
+                            IsEnabled = true,
+                            ThresholdHigh = 10,                            //default
+                            ThresholdMed = 5,                              //default
+                            ThresholdTimeInMilliseconds = 5000,            //default
+                            MinAdjustmentWaitTimeInSecs = 30               //default
+                        },
+                        Decelerator = new DeceleratorConfig
+                        {
+                            ConcurrentSiteCrawlsDecrement = 2,             //default
+                            ConcurrentRequestDecrement = 2,                //default
+                            DelayIncrementInMilliseconds = 2000,           //default
+                            MaxDelayInMilliseconds = 15000,                //default
+                            ConcurrentSiteCrawlsMin = 1,                   //default
+                            ConcurrentRequestMin = 1                       //default
+                        },
+                        // ..............................................................
+
                         MaxPagesToCrawl = 1,                               // Number of sites to crawl
-                        IsJavascriptRenderingEnabled = false,               // Should crawler render JS?
+                        IsJavascriptRenderingEnabled = false,              // Should crawler render JS?
                         JavascriptRenderingWaitTimeInMilliseconds = 10000, // How long to wait for js to process 
                         MaxConcurrentSiteCrawls = 1,                       // Only crawl a single site at a time
                         MaxRetryCount = 3                                  // Retries to connect and crawl site 'x' times
@@ -141,6 +162,10 @@ namespace ScrapeAndCrawl
 
                         for (int i = 0; i < sitesToCrawl.Count; i++)
                         {
+                            if (handler == null)
+                                Log.Logger.Debug("\n\n\nTHIS HANDLER THING IS NULL NOW\n\n\n");
+                            else
+                                Log.Logger.Debug("TEST TEST TEST:\n\n" + handler.ToString() + "\n\n");
                             // Crawl
                             await DataScraper.Crawl(crawlConfig, handler, parsedArgs.handlerType, sitesToCrawl[i]);
                         }
