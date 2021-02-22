@@ -19,6 +19,7 @@ using Abot2.Poco;      //
 using AbotX2.Core;
 using AbotX2.Crawler;  //
 using AbotX2.Poco;     //
+using AbotX2.Parallel;
 
 // Logger
 using Serilog;         // Serilog provides diagnostic logging to files

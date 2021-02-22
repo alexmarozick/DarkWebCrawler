@@ -84,7 +84,7 @@ namespace ScrapeAndCrawl
         /// <param name="args"> Command line arguements passed to executable. </param>
         static async Task Main(string[] args)
         {
-            // Creates a Logger object from Serilog. Writes up to Debug level prints.
+            // Creates a Logger object from Serilog. Writes up to Debug level prints.   
             SetupLogger();
 
             Log.Logger.Information("Darkweb Data Scraper start...");
@@ -103,92 +103,88 @@ namespace ScrapeAndCrawl
             // * starts tor proxy -----------------------------------------------------------------
             using (var proxy = new TorSharpProxy(settings))
             {
-                var handler = new HttpClientHandler
+                var waiting = true;
+                while(waiting) {
+                    // block untill we wait for TorSharp Proxy to be configured
+                    await proxy.ConfigureAndStartAsync();
+                    waiting = false;
+                }
+                
+                // * SETUP AND EXECUTE CRAWLER ================================================
+                // Setup Crawler configuration
+                CrawlConfigurationX crawlConfig = new CrawlConfigurationX
                 {
-                    Proxy = new WebProxy(new Uri("http://localhost:" + settings.PrivoxySettings.Port))
+                    // Read up on what AutoThrottling and Decelerator is doing....
+                    // Also consider commenting them out...
+                    AutoThrottling = new AutoThrottlingConfig
+                    {
+                        IsEnabled = true,
+                        ThresholdHigh = 10,                            //default
+                        ThresholdMed = 5,                              //default
+                        ThresholdTimeInMilliseconds = 5000,            //default
+                        MinAdjustmentWaitTimeInSecs = 30               //default
+                    },
+                    Decelerator = new DeceleratorConfig
+                    {
+                        ConcurrentSiteCrawlsDecrement = 2,             //default
+                        ConcurrentRequestDecrement = 2,                //default
+                        DelayIncrementInMilliseconds = 2000,           //default
+                        MaxDelayInMilliseconds = 15000,                //default
+                        ConcurrentSiteCrawlsMin = 1,                   //default
+                        ConcurrentRequestMin = 1                       //default
+                    },
+                    // ..............................................................
+
+                    MaxPagesToCrawl = 1,                               // Number of sites to crawl
+                    IsJavascriptRenderingEnabled = true,              // Should crawler render JS?
+                    JavascriptRenderingWaitTimeInMilliseconds = 10000, // How long to wait for js to process 
+                    MaxConcurrentSiteCrawls = 1,                       // Only crawl a single site at a time
+                    MaxRetryCount = 3                                  // Retries to connect and crawl site 'x' times
                 };
 
-                // using (handler)
-                using (var httpClient = new HttpClient(handler, false))
+                if (parsedArgs.InputFile == null) // THIS IS "-s"
                 {
-                    var waiting = true;
-                    while(waiting) {
-                        // block untill we wait for TorSharp Proxy to be configured
-                        await proxy.ConfigureAndStartAsync();
-                        waiting = false;
-                    }
-                    
-                    // * SETUP AND EXECUTE CRAWLER ================================================
-                    // Setup Crawler configuration
-                    CrawlConfigurationX crawlConfig = new CrawlConfigurationX
+                    var handler = new HttpClientHandler
                     {
-                        // Read up on what AutoThrottling and Decelerator is doing....
-                        // Also consider commenting them out...
-                        AutoThrottling = new AutoThrottlingConfig
-                        {
-                            IsEnabled = true,
-                            ThresholdHigh = 10,                            //default
-                            ThresholdMed = 5,                              //default
-                            ThresholdTimeInMilliseconds = 5000,            //default
-                            MinAdjustmentWaitTimeInSecs = 30               //default
-                        },
-                        Decelerator = new DeceleratorConfig
-                        {
-                            ConcurrentSiteCrawlsDecrement = 2,             //default
-                            ConcurrentRequestDecrement = 2,                //default
-                            DelayIncrementInMilliseconds = 2000,           //default
-                            MaxDelayInMilliseconds = 15000,                //default
-                            ConcurrentSiteCrawlsMin = 1,                   //default
-                            ConcurrentRequestMin = 1                       //default
-                        },
-                        // ..............................................................
-
-                        MaxPagesToCrawl = 1,                               // Number of sites to crawl
-                        IsJavascriptRenderingEnabled = false,              // Should crawler render JS?
-                        JavascriptRenderingWaitTimeInMilliseconds = 10000, // How long to wait for js to process 
-                        MaxConcurrentSiteCrawls = 1,                       // Only crawl a single site at a time
-                        MaxRetryCount = 3                                  // Retries to connect and crawl site 'x' times
+                        Proxy = new WebProxy(new Uri("http://localhost:" + settings.PrivoxySettings.Port))
                     };
+                    await DataScraper.Crawl(crawlConfig, handler, parsedArgs.handlerType, parsedArgs.StartingUri);
+                }
+                else // THIS IS "--file"
+                {
+                    string inputFilePath = @parsedArgs.InputFile;
 
-                    if (parsedArgs.InputFile == null) // THIS IS "-s"
+                    var sitesToCrawl = GenerateSiteList(inputFilePath);
+
+                    for (int i = 0; i < sitesToCrawl.Count; i++)
                     {
-                        await DataScraper.Crawl(crawlConfig, handler, parsedArgs.handlerType, parsedArgs.StartingUri);
-                    }
-                    else // THIS IS "--file"
-                    {
-                        string inputFilePath = @parsedArgs.InputFile;
-
-                        var sitesToCrawl = GenerateSiteList(inputFilePath);
-
-                        for (int i = 0; i < sitesToCrawl.Count; i++)
+                        var handler = new HttpClientHandler
                         {
-                            if (handler == null)
-                                Log.Logger.Debug("\n\n\nTHIS HANDLER THING IS NULL NOW\n\n\n");
-                            else
-                                Log.Logger.Debug("TEST TEST TEST:\n\n" + handler.ToString() + "\n\n");
-                            // Crawl
-                            await DataScraper.Crawl(crawlConfig, handler, parsedArgs.handlerType, sitesToCrawl[i]);
-                        }
-                    }
-                    // * ==========================================================================
+                            Proxy = new WebProxy(new Uri("http://localhost:" + settings.PrivoxySettings.Port))
+                        };
 
-                    // Check if any cached data exists
-                    if (DataScraper.dataDocuments.Count > 0)
-                    {
-
-                        Log.Logger.Debug("Number of documents generated: " + DataScraper.dataDocuments.Count.ToString());
-
-                        // Setup connection with MongoDB database
-                        var client = new MongoClient("mongodb+srv://test-user_01:vVzppZ1Sz6PzE3Mx@cluster0.bvnvt.mongodb.net/Cluster0?retryWrites=true&w=majority");
-                        var database = client.GetDatabase("test");
-                        var collection = database.GetCollection<BsonDocument>("onion-test-3");
-
-                        await collection.InsertManyAsync(DataScraper.dataDocuments);
+                        // Crawl
+                        await DataScraper.Crawl(crawlConfig, handler, parsedArgs.handlerType, sitesToCrawl[i]);
                     }
                 }
+                // * ==========================================================================
 
-                    // Stop the TorSharp tools so that the proxy is no longer listening on the configured port.
-                    proxy.Stop();
+                // Check if any cached data exists
+                if (DataScraper.dataDocuments.Count > 0)
+                {
+
+                    Log.Logger.Debug("Number of documents generated: " + DataScraper.dataDocuments.Count.ToString());
+
+                    // Setup connection with MongoDB database
+                    var client = new MongoClient("mongodb+srv://test-user_01:vVzppZ1Sz6PzE3Mx@cluster0.bvnvt.mongodb.net/Cluster0?retryWrites=true&w=majority");
+                    var database = client.GetDatabase("test");
+                    var collection = database.GetCollection<BsonDocument>("onion-test-3");
+
+                    await collection.InsertManyAsync(DataScraper.dataDocuments);
+                }
+
+                // Stop the TorSharp tools so that the proxy is no longer listening on the configured port.
+                proxy.Stop();
             }
             // * ----------------------------------------------------------------------------------
         }
