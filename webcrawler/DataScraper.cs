@@ -52,6 +52,7 @@ namespace ScrapeAndCrawl
     {
         /* ========== Public Members ========= */
         public static List<BsonDocument> dataDocuments = new List<BsonDocument>();
+        public static Dictionary<string, int> threadContextDict = new Dictionary<string, int>();
 
         /* ========== Private Members ======== */
 

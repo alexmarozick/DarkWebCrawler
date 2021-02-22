@@ -136,7 +136,7 @@ namespace ScrapeAndCrawl
                     // ..............................................................
 
                     MaxPagesToCrawl = 1,                               // Number of sites to crawl
-                    IsJavascriptRenderingEnabled = true,              // Should crawler render JS?
+                    IsJavascriptRenderingEnabled = true,               // Should crawler render JS?
                     JavascriptRenderingWaitTimeInMilliseconds = 10000, // How long to wait for js to process 
                     MaxConcurrentSiteCrawls = 1,                       // Only crawl a single site at a time
                     MaxRetryCount = 3                                  // Retries to connect and crawl site 'x' times
