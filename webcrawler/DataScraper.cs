@@ -52,8 +52,8 @@ namespace ScrapeAndCrawl
     {
         /* ========== Public Members ========= */
         public static List<BsonDocument> dataDocuments = new List<BsonDocument>();
-        public static Dictionary<string, int> threadContextDict = new Dictionary<string, int>();
-
+        public static List<string> allParsedText = new List<string>(); 
+        public static String siteTitle = "";
         /* ========== Private Members ======== */
 
 
@@ -121,13 +121,13 @@ namespace ScrapeAndCrawl
             // this returns a list of parsed out text content from the raw html
             var parsedText = ParseRawHTML(rawPageText);
 
-            Log.Logger.Debug("Parsed Text Content:");
-            foreach (var item in parsedText)
-            {
-                Log.Logger.Debug(item.ToString());
-            }
+            // Log.Logger.Debug("Parsed Text Content:");
+            // foreach (var item in parsedText)
+            // {
+            //     Log.Logger.Debug(item.ToString());
+            // }
 
-            string siteTitle = ParseOutWebpageTitle(rawPageText);
+            siteTitle = ParseOutWebpageTitle(rawPageText);
 
             // checks parsedText against list of keywords
             // keywords generated from txt file
@@ -159,11 +159,45 @@ namespace ScrapeAndCrawl
             }
         }
 
+        private static void SentimentAnalysisHandler(object sender, PageCrawlCompletedArgs e)
+        {
+            CrawledPage crawledPage = e.CrawledPage;
+
+            if (e.CrawledPage.HttpResponseMessage.StatusCode != HttpStatusCode.OK)
+            {
+                Log.Logger.Debug("Crawl of page failed {0}", crawledPage.Uri.AbsoluteUri);
+                return;
+            }
+            else
+                Log.Logger.Debug("Crawl of page succeeded {0}", crawledPage.Uri.AbsoluteUri);
+
+            if (string.IsNullOrEmpty(crawledPage.Content.Text))
+            {
+                Log.Logger.Debug("Page had no content {0}", crawledPage.Uri.AbsoluteUri);
+                return;
+            }
+
+            var httpStatus = e.CrawledPage.HttpResponseMessage.StatusCode;
+            var rawPageText = e.CrawledPage.Content.Text;
+
+            // this returns a list of parsed out text content from the raw html
+            // var parsedText = ParseRawHTML(rawPageText);
+            var parsedText = ParseRawHTML_bodyText(rawPageText);
+
+            if (parsedText == null)
+            {
+                Log.Logger.Debug("WARNING: \"parsedText\" is null after parsing.");
+                return;
+            }
+
+            allParsedText = allParsedText.Concat(parsedText).ToList();
+        }
+
         /// <summary>
         /// Handles the PageCrawlCompleted event called by a given Crawler.
         /// This handler parses webpages and collects data for rudimentary sentiment analysis.
         /// </summary>
-        private static void SentimentAnalysisHandler(object sender, PageCrawlCompletedArgs e)
+        private static void old_SentimentAnalysisHandler(object sender, PageCrawlCompletedArgs e)
         {
             CrawledPage crawledPage = e.CrawledPage;
 
@@ -237,24 +271,24 @@ namespace ScrapeAndCrawl
             for (int i = 0; i < numWords; i++)
             {
                 //the word we want to check context for
-                Log.Logger.Debug("Getting Context words for " + dictList[i].Key);
+                // Log.Logger.Debug("Getting Context words for " + dictList[i].Key);
                 if (dictList[i].Key == "")
                 {
                     continue;  // Skips the stupid empty string keyword problem we havn't fixed yet...
                 }
 
                 // word
-                Log.Logger.Debug("KEYWORD - " + dictList[i].Key + ":");
-                Log.Logger.Debug("IN RAW UNICODE" + Encoding.UTF8.GetBytes(dictList[i].Key)[0].ToString());
+                // Log.Logger.Debug("KEYWORD - " + dictList[i].Key + ":");
+                // Log.Logger.Debug("IN RAW UNICODE" + Encoding.UTF8.GetBytes(dictList[i].Key)[0].ToString());
 
                 // num occurances
-                Log.Logger.Debug(dictList[i].Value.Item1.ToString());
+                // Log.Logger.Debug(dictList[i].Value.Item1.ToString());
         
-                Log.Logger.Debug("keyword context:");
-                for (var j = 0; j < dictList[i].Value.Item2.Count; j++)
-                {
-                    Log.Logger.Debug(dictList[i].Value.Item2[j]);
-                }
+                // Log.Logger.Debug("keyword context:");
+                // for (var j = 0; j < dictList[i].Value.Item2.Count; j++)
+                // {
+                //     Log.Logger.Debug(dictList[i].Value.Item2[j]);
+                // }
 
                 // Excludes words we don't care about
                 var desiredWords = ExcludeWords(dictList[i].Value.Item2);
@@ -263,11 +297,11 @@ namespace ScrapeAndCrawl
                 //number of occurances of context words for a given keyword
                 var contextWordCount = GetWordCount(desiredWords);
 
-                foreach(var kvpair in contextWordCount)
-                {
-                    if (kvpair.Value > 1)
-                        Log.Logger.Debug("Key: " + kvpair.Key.ToString() + "\n" + "Val: " + kvpair.Value.ToString());
-                }
+                // foreach(var kvpair in contextWordCount)
+                // {
+                //     if (kvpair.Value > 1)
+                //         Log.Logger.Debug("Key: " + kvpair.Key.ToString() + "\n" + "Val: " + kvpair.Value.ToString());
+                // }
 
                 sentimentAnalysis.Add(new BsonElement(
                     dictList[i].Key,new BsonDocument
@@ -396,7 +430,7 @@ namespace ScrapeAndCrawl
         /// Parses out webpage title using xpath + HTMLAgilityPack
         /// </summary>
         /// <returns> String containing the title of a webpage. </returns>
-        private static string ParseOutWebpageTitle(string rawPageText)
+        public static string ParseOutWebpageTitle(string rawPageText)
         {
             string result = "";
 
@@ -414,7 +448,7 @@ namespace ScrapeAndCrawl
         /// This is an O(N^2) algorithm for counting number of occurances of certain keywords
         /// </summary>
         /// <returns> Dictionary of (string, int) value pairs </returns>
-        private static Dictionary<string,int> GetWordCount(List<string> parsedText, string keywords = null)
+        public static Dictionary<string,int> GetWordCount(List<string> parsedText, string keywords = null)
         {
             // Create a Hashset of keywords to check against where ...
             // * each key contains only the chars of the keyword
@@ -472,7 +506,7 @@ namespace ScrapeAndCrawl
         /// <summary>
         /// Similar to Get Word Count but also gets the context a word was used in.
         /// </summary>
-        private static Dictionary<string, Pair<int, List<string>>> GetWordCountAndContext(List<string> parsedText, string toIgnore, string keywords = null)
+        public static Dictionary<string, Pair<int, List<string>>> GetWordCountAndContext(List<string> parsedText, string toIgnore, string keywords = null)
         {
             Dictionary<string, Pair<int, List<string>>> result = new Dictionary<string, Pair<int, List<string>>>();
 
@@ -504,10 +538,10 @@ namespace ScrapeAndCrawl
             // Tracks each found word
             HashSet<string> foundWords = new HashSet<string>();
 
-            foreach (var item in parsedText)
-            {
-                Console.WriteLine($"\n{item}");
-            }
+            // foreach (var item in parsedText)
+            // {
+            //     Console.WriteLine($"\n{item}");
+            // }
 
             foreach(var str in parsedText)
             {
@@ -583,7 +617,7 @@ namespace ScrapeAndCrawl
         }
 
         /// <summary> Used for Word Frequency. This method excludes words we should always ignore. </summary>
-        private static List<string> ExcludeWords(List<string> parsedText, string toIgnore=null)
+        public static List<string> ExcludeWords(List<string> parsedText, string toIgnore=null)
         {   
             // Define a set of words that will be excluded in general
             HashSet<string> ignoredSet = new HashSet<string>(

@@ -13,6 +13,9 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Net;
 using System.Net.Http;
+using System.Linq;
+using System.Text.RegularExpressions;
+using System.Text;
 
 // Abot2
 // using Abot2.Core;      // Core components <change this comment later this is a bad description>
@@ -79,8 +82,6 @@ namespace ScrapeAndCrawl
         // PRIVATE CLASS MEMBERS
 
         // MAIN ===================================================================================
-        // ========================================================================================
-        // ========================================================================================
         /// <param name="args"> Command line arguements passed to executable. </param>
         static async Task Main(string[] args)
         {
@@ -135,9 +136,10 @@ namespace ScrapeAndCrawl
                     },
                     // ..............................................................
 
-                    MaxPagesToCrawl = 1,                               // Number of sites to crawl
+                    MaxPagesToCrawl = 30,
+                    MaxCrawlDepth = 1,                           // Number of sites to crawl
                     IsJavascriptRenderingEnabled = true,               // Should crawler render JS?
-                    JavascriptRenderingWaitTimeInMilliseconds = 10000, // How long to wait for js to process 
+                    JavascriptRenderingWaitTimeInMilliseconds = 2000, // How long to wait for js to process 
                     MaxConcurrentSiteCrawls = 1,                       // Only crawl a single site at a time
                     MaxRetryCount = 3                                  // Retries to connect and crawl site 'x' times
                 };
@@ -149,9 +151,17 @@ namespace ScrapeAndCrawl
                         Proxy = new WebProxy(new Uri("http://localhost:" + settings.PrivoxySettings.Port))
                     };
                     await DataScraper.Crawl(crawlConfig, handler, parsedArgs.handlerType, parsedArgs.StartingUri);
+                    BuildBsonDocument(DataScraper.allParsedText, parsedArgs.StartingUri);
+                    //reset vals for next crawl
+                    DataScraper.allParsedText = new List<string>();
+                    DataScraper.siteTitle = "";
                 }
                 else // THIS IS "--file"
                 {
+                    var client = new MongoClient("mongodb://test-user_01:vVzppZ1Sz6PzE3Mx@cluster0-shard-00-00.bvnvt.mongodb.net:27017,cluster0-shard-00-01.bvnvt.mongodb.net:27017,cluster0-shard-00-02.bvnvt.mongodb.net:27017/myFirstDatabase?ssl=true&replicaSet=atlas-lfat71-shard-0&authSource=admin&retryWrites=true&w=majority");
+                    //var client = new MongoClient("mongodb+srv://test-user_01:vVzppZ1Sz6PzE3Mx@cluster0.bvnvt.mongodb.net/Cluster0?retryWrites=true&w=majority");
+                    var database = client.GetDatabase("test");
+                    var collection = database.GetCollection<BsonDocument>("onion-test-3");
                     string inputFilePath = @parsedArgs.InputFile;
 
                     var sitesToCrawl = GenerateSiteList(inputFilePath);
@@ -165,23 +175,31 @@ namespace ScrapeAndCrawl
 
                         // Crawl
                         await DataScraper.Crawl(crawlConfig, handler, parsedArgs.handlerType, sitesToCrawl[i]);
+                        //build BSON Doucment 
+                        BuildBsonDocument(DataScraper.allParsedText,sitesToCrawl[i]);
+                        //reset vals for next crawl
+                        collection.InsertMany(DataScraper.dataDocuments);
+                        DataScraper.allParsedText = new List<string>();
+                        DataScraper.siteTitle = "";
+                        DataScraper.dataDocuments = new List<BsonDocument>();
                     }
                 }
                 // * ==========================================================================
 
                 // Check if any cached data exists
-                if (DataScraper.dataDocuments.Count > 0)
-                {
+                // if (DataScraper.dataDocuments.Count > 0)
+                // {
 
-                    Log.Logger.Debug("Number of documents generated: " + DataScraper.dataDocuments.Count.ToString());
+                //     Log.Logger.Debug("Number of documents generated: " + DataScraper.dataDocuments.Count.ToString());
 
-                    // Setup connection with MongoDB database
-                    var client = new MongoClient("mongodb+srv://test-user_01:vVzppZ1Sz6PzE3Mx@cluster0.bvnvt.mongodb.net/Cluster0?retryWrites=true&w=majority");
-                    var database = client.GetDatabase("test");
-                    var collection = database.GetCollection<BsonDocument>("onion-test-3");
+                //     // Setup connection with MongoDB database
+                //     var client = new MongoClient("mongodb://test-user_01:vVzppZ1Sz6PzE3Mx@cluster0-shard-00-00.bvnvt.mongodb.net:27017,cluster0-shard-00-01.bvnvt.mongodb.net:27017,cluster0-shard-00-02.bvnvt.mongodb.net:27017/myFirstDatabase?ssl=true&replicaSet=atlas-lfat71-shard-0&authSource=admin&retryWrites=true&w=majority");
+                //     //var client = new MongoClient("mongodb+srv://test-user_01:vVzppZ1Sz6PzE3Mx@cluster0.bvnvt.mongodb.net/Cluster0?retryWrites=true&w=majority");
+                //     var database = client.GetDatabase("test");
+                //     var collection = database.GetCollection<BsonDocument>("onion-test-3");
 
-                    await collection.InsertManyAsync(DataScraper.dataDocuments);
-                }
+                //     collection.InsertMany(DataScraper.dataDocuments);
+                // }
 
                 // Stop the TorSharp tools so that the proxy is no longer listening on the configured port.
                 proxy.Stop();
@@ -319,8 +337,84 @@ namespace ScrapeAndCrawl
             return result;
         }
         // ========================================================================================
-        // ========================================================================================
-        // ========================================================================================
+        static void BuildBsonDocument(List<string> parsedText, string crawledURL){
+            
+            List<BsonDocument> dataDocuments = new List<BsonDocument>();
+            
+            // Dictionary containing keywords desired, and a list of all contexts in which they were used
+            Dictionary<string, Pair<int, List<string>>> contextCache = DataScraper.GetWordCountAndContext(parsedText, Constants.DefaultIgnoreWordsTXT);
+
+            //make list from dict to sort
+            var dictList = contextCache.ToList();
+
+            // Sort takes a comparison operator
+            // Comparison(x,y) -> less than 0 if x < y, 0 if equal, greater than 0 if x > y
+            // for all keyValuePairs in dict, sort based on the frequency count
+            // pair: word : list of 
+            dictList.Sort((pair1,pair2) =>  pair1.Value.Item1 > pair2.Value.Item1 ? -1 : 1);
+
+            var sentimentAnalysis = new BsonDocument();
+
+            var numWords = dictList.Count > 100 ? 100 : dictList.Count;
+            for (int i = 0; i < numWords; i++)
+            {
+                //Log.Logger.Debug("Getting Context words for " + dictList[i].Key);
+                if (dictList[i].Key == "")
+                {
+                    continue;  // Skips the stupid empty string keyword problem we havn't fixed yet...
+                }
+
+                // word
+                // Log.Logger.Debug("KEYWORD - " + dictList[i].Key + ":");
+                // Log.Logger.Debug("IN RAW UNICODE" + Encoding.UTF8.GetBytes(dictList[i].Key)[0].ToString());
+                // num occurances
+                // Log.Logger.Debug(dictList[i].Value.Item1.ToString());
+                // Log.Logger.Debug("keyword context:");
+
+                // for (var j = 0; j < dictList[i].Value.Item2.Count; j++)
+                // {
+                //     Log.Logger.Debug(dictList[i].Value.Item2[j]);
+                // }
+
+                // Excludes words we don't care about
+                var desiredWords = DataScraper.ExcludeWords(dictList[i].Value.Item2);
+
+                //the context sentences
+                //number of occurances of context words for a given keyword
+                var contextWordCount = DataScraper.GetWordCount(desiredWords);
+
+                // foreach(var kvpair in contextWordCount)
+                // {
+                //     if (kvpair.Value > 1)
+                //         Log.Logger.Debug("Key: " + kvpair.Key.ToString() + "\n" + "Val: " + kvpair.Value.ToString());
+                // }
+
+                sentimentAnalysis.Add(new BsonElement(
+                    dictList[i].Key,new BsonDocument
+                    {
+                        {"Count",dictList[i].Value.Item1},
+                        {"ContextSentences", new BsonArray(dictList[i].Value.Item2)},
+                        {"ContextWordFrequency", new BsonDocument(contextWordCount)}
+                    }
+                ));
+            }
+
+            // BSON doc
+            var bson = new BsonDocument
+            {
+                {"WebsiteTitle", DataScraper.siteTitle},
+                {"URL", crawledURL},
+                // {"Raw", rawPageText},
+                {"SentimentAnalysis", sentimentAnalysis}
+            };
+
+            if (bson != null)
+            {
+                DataScraper.dataDocuments.Add(bson);
+            }
+
+        }
+
     }
 }
 #endregion
