@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Abot" Version="2.0.67"/>
+    <PackageReference Include="AbotX" Version="2.1.8"/>
+    <PackageReference Include="MongoDB.Driver" Version="2.11.6"/>
+    <PackageReference Include="MongoDB.Driver.Core" Version="2.11.6"/>
+    <PackageReference Include="MongoDB.Bson" Version="2.11.6"/>
+    <PackageReference Include="Serilog" Version="2.10.0"/>
+    <PackageReference Include="Serilog.Sinks.Console" Version="*"/>
+    <PackageReference Include="Serilog.Sinks.File" Version="*"/>
+    <PackageReference Include="CommandLineParser" Version="2.8.0"/>
+    <PackageReference Include="Knapcode.TorSharp" Version="2.5.0"/>
+    <PackageReference Include="HtmlAgilityPack" Version="1.11.30"/>
+    <PackageReference Include="JSON" Version="1.0.1"/>
+  </ItemGroup>
+</Project>
