@@ -7,8 +7,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Net.Http;
 using System.Linq;
-using System.Text.RegularExpressions;
-using System.Text;
 
 // Abot2
 using Abot2.Core;      // Core components <change this comment later this is a bad description>

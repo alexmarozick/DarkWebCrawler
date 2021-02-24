@@ -14,21 +14,11 @@ using System.Threading.Tasks;
 using System.Net;
 using System.Net.Http;
 using System.Linq;
-using System.Text.RegularExpressions;
-using System.Text;
 
-// Abot2
-// using Abot2.Core;      // Core components <change this comment later this is a bad description>
-// using Abot2.Crawler;   // Namespace where Crawler objects are defined
-// using Abot2.Poco;      //
-
-// AbotX2
-// using AbotX2.Crawler;  //
-// using AbotX2.Parallel; //
-using AbotX2.Poco;     //
+using AbotX2.Poco;
 
 // Logger
-using Serilog;         // Serilog provides diagnostic logging to files
+using Serilog;
 
 // Command Line Arguement Parser
 using CommandLine;
@@ -120,28 +110,28 @@ namespace ScrapeAndCrawl
                     AutoThrottling = new AutoThrottlingConfig
                     {
                         IsEnabled = true,
-                        ThresholdHigh = 10,                            //default
-                        ThresholdMed = 5,                              //default
-                        ThresholdTimeInMilliseconds = 5000,            //default
-                        MinAdjustmentWaitTimeInSecs = 30               //default
+                        ThresholdHigh = 10,                             //default
+                        ThresholdMed = 5,                               //default
+                        ThresholdTimeInMilliseconds = 5000,             //default
+                        MinAdjustmentWaitTimeInSecs = 30                //default
                     },
                     Decelerator = new DeceleratorConfig
                     {
-                        ConcurrentSiteCrawlsDecrement = 2,             //default
-                        ConcurrentRequestDecrement = 2,                //default
-                        DelayIncrementInMilliseconds = 2000,           //default
-                        MaxDelayInMilliseconds = 15000,                //default
-                        ConcurrentSiteCrawlsMin = 1,                   //default
-                        ConcurrentRequestMin = 1                       //default
+                        ConcurrentSiteCrawlsDecrement = 2,              //default
+                        ConcurrentRequestDecrement = 2,                 //default
+                        DelayIncrementInMilliseconds = 2000,            //default
+                        MaxDelayInMilliseconds = 15000,                 //default
+                        ConcurrentSiteCrawlsMin = 1,                    //default
+                        ConcurrentRequestMin = 1                        //default
                     },
                     // ..............................................................
 
-                    MaxPagesToCrawl = 30,
-                    MaxCrawlDepth = 1,                           // Number of sites to crawl
-                    IsJavascriptRenderingEnabled = true,               // Should crawler render JS?
-                    JavascriptRenderingWaitTimeInMilliseconds = 2000, // How long to wait for js to process 
-                    MaxConcurrentSiteCrawls = 1,                       // Only crawl a single site at a time
-                    MaxRetryCount = 3                                  // Retries to connect and crawl site 'x' times
+                    MaxPagesToCrawl = 30,                               // Max total urls this crawler should crawl
+                    MaxCrawlDepth = 1,                                  // Depth for crawler to traverse urls
+                    IsJavascriptRenderingEnabled = true,                // Should crawler render JS?
+                    JavascriptRenderingWaitTimeInMilliseconds = 2000,   // How long to wait for js to process 
+                    MaxConcurrentSiteCrawls = 1,                        // Only crawl a single site at a time
+                    MaxRetryCount = 3                                   // Retries to connect and crawl site 'x' times
                 };
 
                 if (parsedArgs.InputFile == null) // THIS IS "-s"
@@ -156,7 +146,7 @@ namespace ScrapeAndCrawl
                     DataScraper.allParsedText = new List<string>();
                     DataScraper.siteTitle = "";
                 }
-                else // THIS IS "--file"
+                else // THIS IS "--multi"
                 {
                     var client = new MongoClient("mongodb://test-user_01:vVzppZ1Sz6PzE3Mx@cluster0-shard-00-00.bvnvt.mongodb.net:27017,cluster0-shard-00-01.bvnvt.mongodb.net:27017,cluster0-shard-00-02.bvnvt.mongodb.net:27017/myFirstDatabase?ssl=true&replicaSet=atlas-lfat71-shard-0&authSource=admin&retryWrites=true&w=majority");
                     //var client = new MongoClient("mongodb+srv://test-user_01:vVzppZ1Sz6PzE3Mx@cluster0.bvnvt.mongodb.net/Cluster0?retryWrites=true&w=majority");
