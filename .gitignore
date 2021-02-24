@@ -1,3 +1,4 @@
+
 # From .NET Core 3.0 you can use the command: `dotnet new gitignore` to generate a customizable .gitignore file
 
 *.swp
@@ -37,3 +38,26 @@ log/
 
 # this is for me - seth
 webcrawler/itinerary.txt
+=======
+#vscode
+.vscode/
+# Environments
+/env
+*.env
+*.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+#pycache
+.pytest_cache/
+__pycache__/
+.flask_session/
+Prototypes/
+.vscode/
+.pytest_cache/
+__pycache__/
+
+#other stuff
+config.ini

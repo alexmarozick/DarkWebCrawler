@@ -1,0 +1,71 @@
+:root {
+    --font-color: #f2f2f2;
+    --link-font-color: #f2f2f2;
+    --bg-color: #383a59;
+    --heading-color: #ff79c6; 
+    --button-color: #50fa7b;
+    --button-color-hover: #36b154; /* lighter color of the one above it*/
+    --button-color-text: black;
+    }
+  /* 
+    #ADDFAD moss green  
+    #1DB954 Spotify green
+  */
+  
+  * {
+    margin: 0px;
+    padding: 0px;
+    box-sizing: border-box;
+    scroll-behavior: smooth;
+  }
+  
+    [data-mode="light"] {
+      --primary-color: #302ae6;
+      --secondary-color: #536390;
+      --font-color: #232835;
+      --link-font-color: rgb(137, 137, 141);
+      --bg-color: #383a59;;
+      --button-color: rgb(41, 41, 43);
+      --button-color: #232835;
+      --button-color-hover: #39435c;
+      --button-color-text: white;
+    }
+  
+  main {
+    margin: 0 auto;
+    /* min-height: calc(
+      100vh - 48px - 129.73px
+    ); at minimum, footer will be at bottom (viewport - size of navbar - size of footer) */
+  }
+  
+  
+  body {
+    font-family: "Open Sans", sans-serif;
+    background-color: var(--bg-color);
+    transition: background 0.4s;
+    color: var(--font-color);
+    position: relative;
+    padding-bottom: 129.73px;
+    min-height: 100vh;
+  }
+  
+  p {
+    margin: 0 0 0.5em;
+  }
+  
+  body::-webkit-scrollbar {
+    width: 1rem;
+  }
+  body::-webkit-scrollbar-track {
+    background: rgb(15, 15, 15);
+  }
+  body::-webkit-scrollbar-thumb {
+    background: #2e2e2e;
+    border-radius: 19px;
+  }
+  
+  a {
+    text-decoration: none;
+    color: var(--font-color);
+  }
+  

@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+        <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+        <script src="https://kit.fontawesome.com/75ff20203d.js" crossorigin="anonymous"></script>
+        <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Saira:wght@300;500&display=swap" rel="stylesheet">
+       
+        <link rel="stylesheet" href="../static/stylesheets/navbar.css">
+        <link rel="stylesheet" href="../static/stylesheets/footer.css">
+        <link rel="stylesheet" href="../static/stylesheets/root.css">
+        <link rel="stylesheet" href="../static/stylesheets/general.css">
+
+
+
+
+        <!-- Javascript:  JQuery from a content distribution network (CDN) -->
+        <script
+        src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js">
+        </script>
+
+        <title>Dark Web Crawler</title>
+    </head>
+
+
+<body>
+    <div class="nav-menu"> 
+        <div class="bar top"></div> <!--top bar of menu-->
+        <div class="bar"></div>     <!--mid bar of menu-->
+        <div class="bar bot"></div> <!--bottom bar of menu-->
+    </div>
+    
+    <nav class="top-nav">
+        <ul class="nav-list">
+
+            <li class="nav-item">
+                <a href="#Home" class="nav-link">Home</a>
+            </li>
+
+            <li class="nav-item">
+                <a href="#about" class="nav-link">Background</a>
+            </li>
+            
+            <li class="nav-item">
+                <a href="#data_analysis" class="nav-link">Data Analysis</a>
+            </li>
+
+            <li class="nav-social"> 
+                <div class="socials">
+                    <a href="https://github.com/alexmarozick/DarkWebCrawler" class="icon-link" target="_blank">
+                        <i class="fa fa-github" aria-hidden="true"></i>
+                    </a>
+                </div>
+            </li>
+
+        </ul>
+            <!-- <label class="switch">
+                <input type="checkbox" id="checkbox" />
+                <span class="slider"></span>
+            </label> -->
+    </nav>
+    
+    <div class="parallax"></div>
+
+
+    <main>
+
+
+        <div class="section-1" id="Home">
+            <h1 class="title">Dark Web Crawler</h1>
+            <br>
+            <div class="textbox">
+                <div class="subtitle">
+                    Problem
+                </div>
+                <div class="answer">
+                    The websites in the Dark Web are characterized by their use of encryption software that makes their users and their locations anonymous. The fact that data can be transferred anonymously is  why illegal activity is so common on the Dark web. However, it’s also used by political whistle-blowers, activists, and journalists who may be censored or could risk political retaliation if discovered by their government. Our primary goal is to provide insight into the composition of the dark web while being transparent about our methodology as well as describing the security risks of accessing the Dark Web. Due to our limited access and research timeframe, being rigorous and transparent about how we aggregate data and acknowledging the inherent biases of our methodology are essential for us to provide accurate and detailed accounts of what we have found.
+                </div>
+            </div>
+        
+        </div>
+        <div class="section-2" id="about">
+            <h1 class="title">Background</h1>
+            <div class="textbox">
+                <div class="subtitle">
+                    FAQ Section
+                </div>
+                <div class="question">
+                    What is the Dark Web?
+                </div>
+                <div class="answer">
+                    The Dark Web is the part of the internet that is hidden from public view. The Dark Web is much larger then the internet you can access using Google 
+                    and runs on encrypted browers such that users are anonymous and can't be tracked.
+                </div>
+                <div class="question">
+                    What are the risks of accessing the Dark Web?
+                </div>
+                <div class="answer">
+                    Unlike browsers such as Google Chrome or Firefox which protect and monitor users, the dark web browsers such as Tor will keep users anonymous which attracts
+                     people who may want to hack you, buy from illegal markets or view illegal sites with little to no reprecussions.
+                </div>
+                <div class="question">
+                    Is the Dark Web safe to access?
+                </div>
+                <div class="answer">
+                    Short answer, no. Unless you know how to protect yourself. Dark Web browers don't have the same level of protection as public browers such as Google or Bing.
+                </div>
+                <div class="question">
+                    Why would someone want to access the Dark Web?
+                </div>
+                <div class="answer">
+                    The main reason that someone would access the dark Web is to search for, or participate in illegal activities. You could find stolen movies or music, drugs, credit card numbers,
+                    personal identifiable information (SSN, address, phone numbers) or see if your own information is floating around out there.
+                </div>
+            </div>
+        </div>
+        
+        <div class="section-1" id="data_analysis">
+            <h1 class="title">Data Analysis</h1>
+            <br>
+            <div class="textbox">
+                <div class="subtitle">
+                    
+                </div>
+                Lorem ipsum, dolor sit amet consectetur adipisicing elit. Numquam, hic? Ullam illo eius magni saepe sit qui debitis aperiam cupiditate, velit esse quaerat odit delectus consectetur et! Amet, tempore doloremque.
+            </div>
+        </div>
+        
+            <!-- submit button for searches into the db-->
+            <!-- <script type=text/javascript>
+                $(function() {
+                    $('#submit-btn').click(function(){
+
+                        $.getJSON('/get-lyrics',{
+                            songid: $('#song').val(),
+                            artistid: $('#artist').val()
+                        },
+                        function(data){
+                            // document.getElementById("result").innerHTML = data.result;
+                            if(data.result == "") {
+                                alert("Can't input empty box!")
+                            }
+                            document.getElementById("textarea").innerHTML = data.result;
+                        });
+                    });
+                });
+            </script> -->
+            <!-- end of ajax -->
+
+            <!-- <div class="output-box"> -->
+                <!-- text area class was wrapper -->
+                <!-- <div class="wrapper" id="textarea">
+                    <p id="result" placeholder="result placeholder"> </p>  
+                </div>
+
+            </div>
+
+            <div id="examples-container">
+                <div id="examples">
+                    <h3>Notable examples:</h3>
+                    <li>I Think by Tyler, The Creator</li>
+                    <li>Clout Cobain by Denzel Curry</li>
+                    <li>Sirens by Denzel Curry</li>
+                    <li>Tragedy by RZA</li>
+                    <li>DNA by Kendrick Lamar</li>
+                    <li>Stan by Eminem</li>
+                    <li>Gin And Juice by Snoop Dogg</li>
+                    
+                </div>
+            </div> -->
+
+            <!-- The following container and script are for user entered lyrics being submitted -->
+            <!-- <div id="text-submit-btn-container">
+                <input class="btn" type="submit" name="TextSubmitName" value="TextSubmitValue" id="text-submit-btn">
+            </div> -->
+    <!-- 
+            <script type=text/javascript>
+                $(function() {
+                    $('#text-submit-btn').click(function(){
+                        $.getJSON('/user-lyrics',{
+                            textboxid: $('#textarea').val(),
+                        },
+                        function(data){
+                            document.getElementById("result").innerHTML = data.result;
+                        });
+                    });
+                });
+            </script> -->
+
+    </main>
+
+    <!-- footer -->
+    <div class="footer-container">
+
+        <div class="footer-heading footer-1">
+            <ul class="contact-info">
+                <li class="contact-item">
+                    <h3>Alex Marozick</h3>
+                <li class="contact-item">
+                    <a href="https://github.com/alexmarozick" class="contact-icon" target="_blank">
+                        <i class="fa fa-github" aria-hidden="true"></i>
+                    </a>
+                </li>
+                <li class="contact-item">
+                    <a href="https://www.linkedin.com/in/alex-marozick-290b85195/" class="contact-icon" target="_blank">
+                        <i class="fa fa-linkedin-square" aria-hidden="true"></i>
+                    </a>
+                </li>
+                <li class="contact-item">
+                    <a class="email-link" href="mailto:alexmarozick@gmail.com">alexmarozick@gmail.com</a>
+                </li>
+            </ul>        
+        </div>
+        
+        <div class="footer-heading footer-2">
+            <ul class="contact-info">
+                <li class="contact-item">
+                    <h3>Juno Mayer</h3>
+                </li>
+                <li class="contact-item">
+                    <a href="https://github.com/Saybrr" class="contact-icon" target="_blank">
+                        <i class="fa fa-github" aria-hidden="true"></i>
+                    </a>
+                </li>
+                <li class="contact-item">
+                    <a href="https://www.linkedin.com/in/juno-mayer-b50a441a2/" class="contact-icon" target="_blank">
+                        <i class="fa fa-linkedin-square" aria-hidden="true"></i>
+                    </a>
+                </li>
+                <li class="contact-item">
+                    <a class="email-link" href="mailto:gjvmayer@gmail.com"> gjvmayer@gmail.com</a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="footer-heading footer-3">
+            <ul class="contact-info">
+                <li class="contact-item">
+                    <h3>Seth Tal</h3>
+                </li>
+                <li class="contact-item">
+                <a href="https://sephta.github.io/" class="contact-icon" target="_blank">
+                    <i class="fa fa-github" aria-hidden="true"></i>
+                </a>
+                </li>
+                <li class="contact-item">
+                    <a class="email-link" href="mailto:seth.tal255@gmail.com">seth.tal255@gmail.com</a>
+                </li>
+            </ul>
+        </div>
+
+    </div>
+
+<script src="../static/JSscripts/main.js"></script>
+</body>
+
+</html>
