@@ -354,30 +354,12 @@ namespace ScrapeAndCrawl
                     continue;  // Skips the stupid empty string keyword problem we havn't fixed yet...
                 }
 
-                // word
-                // Log.Logger.Debug("KEYWORD - " + dictList[i].Key + ":");
-                // Log.Logger.Debug("IN RAW UNICODE" + Encoding.UTF8.GetBytes(dictList[i].Key)[0].ToString());
-                // num occurances
-                // Log.Logger.Debug(dictList[i].Value.Item1.ToString());
-                // Log.Logger.Debug("keyword context:");
-
-                // for (var j = 0; j < dictList[i].Value.Item2.Count; j++)
-                // {
-                //     Log.Logger.Debug(dictList[i].Value.Item2[j]);
-                // }
-
                 // Excludes words we don't care about
                 var desiredWords = DataScraper.ExcludeWords(dictList[i].Value.Item2);
 
                 //the context sentences
                 //number of occurances of context words for a given keyword
                 var contextWordCount = DataScraper.GetWordCount(desiredWords);
-
-                // foreach(var kvpair in contextWordCount)
-                // {
-                //     if (kvpair.Value > 1)
-                //         Log.Logger.Debug("Key: " + kvpair.Key.ToString() + "\n" + "Val: " + kvpair.Value.ToString());
-                // }
 
                 sentimentAnalysis.Add(new BsonElement(
                     dictList[i].Key,new BsonDocument
