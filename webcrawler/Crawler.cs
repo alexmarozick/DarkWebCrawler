@@ -38,7 +38,6 @@ using ScrapeAndCrawl.Extensions;
 
 namespace ScrapeAndCrawl
 {
-
     /// <summary>
     /// Object containing defined cmd args to parse for the Web Scraper tool
     /// </summary>
@@ -64,7 +63,12 @@ namespace ScrapeAndCrawl
     class Crawler
     {
         // PUBLIC CLASS MEMBERS
-        // configure
+        
+        public static string MONGO_URI = ""; // Specify a MongoURI if you plan on uploading data to your own backend
+
+        public static string MONGO_DATABASE_NAME = ""; // If you are filling out the mongo field above, specify database name
+
+        public static string MONGO_COLLECTION_NAME = "";
 
         // will contain parsed arguement data from the command line
         static Options parsedArgs;
@@ -105,53 +109,40 @@ namespace ScrapeAndCrawl
                 // Setup Crawler configuration
                 CrawlConfigurationX crawlConfig = new CrawlConfigurationX
                 {
-                    // Read up on what AutoThrottling and Decelerator is doing....
-                    // Also consider commenting them out...
-                    AutoThrottling = new AutoThrottlingConfig
-                    {
-                        IsEnabled = true,
-                        ThresholdHigh = 10,                             //default
-                        ThresholdMed = 5,                               //default
-                        ThresholdTimeInMilliseconds = 5000,             //default
-                        MinAdjustmentWaitTimeInSecs = 30                //default
-                    },
-                    Decelerator = new DeceleratorConfig
-                    {
-                        ConcurrentSiteCrawlsDecrement = 2,              //default
-                        ConcurrentRequestDecrement = 2,                 //default
-                        DelayIncrementInMilliseconds = 2000,            //default
-                        MaxDelayInMilliseconds = 15000,                 //default
-                        ConcurrentSiteCrawlsMin = 1,                    //default
-                        ConcurrentRequestMin = 1                        //default
-                    },
-                    // ..............................................................
-
                     MaxPagesToCrawl = 30,                               // Max total urls this crawler should crawl
                     MaxCrawlDepth = 1,                                  // Depth for crawler to traverse urls
-                    IsJavascriptRenderingEnabled = true,                // Should crawler render JS?
+                    IsJavascriptRenderingEnabled = false,                // Should crawler render JS?
                     JavascriptRenderingWaitTimeInMilliseconds = 2000,   // How long to wait for js to process 
                     MaxConcurrentSiteCrawls = 1,                        // Only crawl a single site at a time
                     MaxRetryCount = 3                                   // Retries to connect and crawl site 'x' times
                 };
 
-                if (parsedArgs.InputFile == null) // THIS IS "-s"
+                if (parsedArgs.InputFile == null) // THIS IS "-s" or "--single"
                 {
                     var handler = new HttpClientHandler
                     {
                         Proxy = new WebProxy(new Uri("http://localhost:" + settings.PrivoxySettings.Port))
                     };
+
+                    // Crawl
                     await DataScraper.Crawl(crawlConfig, handler, parsedArgs.handlerType, parsedArgs.StartingUri);
+
                     BuildBsonDocument(DataScraper.allParsedText, parsedArgs.StartingUri);
+
                     //reset vals for next crawl
                     DataScraper.allParsedText = new List<string>();
                     DataScraper.siteTitle = "";
+                    DataScraper.dataDocuments = new List<BsonDocument>();
+
+                    if (MONGO_URI == "")
+                    {
+                        Log.Logger.Information("Database information is no longer accessible or available." +
+                                               "You will need to provide your own Mongo details in \"Crawler.cs\".");
+                    }
                 }
-                else // THIS IS "--multi"
+                else // THIS IS "-m" or "--multi"
                 {
-                    var client = new MongoClient("mongodb://test-user_01:vVzppZ1Sz6PzE3Mx@cluster0-shard-00-00.bvnvt.mongodb.net:27017,cluster0-shard-00-01.bvnvt.mongodb.net:27017,cluster0-shard-00-02.bvnvt.mongodb.net:27017/myFirstDatabase?ssl=true&replicaSet=atlas-lfat71-shard-0&authSource=admin&retryWrites=true&w=majority");
-                    //var client = new MongoClient("mongodb+srv://test-user_01:vVzppZ1Sz6PzE3Mx@cluster0.bvnvt.mongodb.net/Cluster0?retryWrites=true&w=majority");
-                    var database = client.GetDatabase("test");
-                    var collection = database.GetCollection<BsonDocument>("onion-test-3");
+
                     string inputFilePath = @parsedArgs.InputFile;
 
                     var sitesToCrawl = GenerateSiteList(inputFilePath);
@@ -165,31 +156,31 @@ namespace ScrapeAndCrawl
 
                         // Crawl
                         await DataScraper.Crawl(crawlConfig, handler, parsedArgs.handlerType, sitesToCrawl[i]);
-                        //build BSON Doucment 
+
                         BuildBsonDocument(DataScraper.allParsedText,sitesToCrawl[i]);
+
+                        if (MONGO_URI == "")
+                        {
+                            Log.Logger.Information("Database information is no longer accessible or available." +
+                                                   "You will need to provide your own Mongo details in \"Crawler.cs\".");
+                        }
+
+                        if (MONGO_URI != "" && MONGO_COLLECTION_NAME != "" && MONGO_DATABASE_NAME != "")
+                        {
+                            var client = new MongoClient(MONGO_URI);
+                            var database = client.GetDatabase(MONGO_DATABASE_NAME);
+                            var collection = database.GetCollection<BsonDocument>(MONGO_COLLECTION_NAME);
+
+                            collection.InsertMany(DataScraper.dataDocuments);
+                        }
+
                         //reset vals for next crawl
-                        collection.InsertMany(DataScraper.dataDocuments);
                         DataScraper.allParsedText = new List<string>();
                         DataScraper.siteTitle = "";
                         DataScraper.dataDocuments = new List<BsonDocument>();
                     }
                 }
                 // * ==========================================================================
-
-                // Check if any cached data exists
-                // if (DataScraper.dataDocuments.Count > 0)
-                // {
-
-                //     Log.Logger.Debug("Number of documents generated: " + DataScraper.dataDocuments.Count.ToString());
-
-                //     // Setup connection with MongoDB database
-                //     var client = new MongoClient("mongodb://test-user_01:vVzppZ1Sz6PzE3Mx@cluster0-shard-00-00.bvnvt.mongodb.net:27017,cluster0-shard-00-01.bvnvt.mongodb.net:27017,cluster0-shard-00-02.bvnvt.mongodb.net:27017/myFirstDatabase?ssl=true&replicaSet=atlas-lfat71-shard-0&authSource=admin&retryWrites=true&w=majority");
-                //     //var client = new MongoClient("mongodb+srv://test-user_01:vVzppZ1Sz6PzE3Mx@cluster0.bvnvt.mongodb.net/Cluster0?retryWrites=true&w=majority");
-                //     var database = client.GetDatabase("test");
-                //     var collection = database.GetCollection<BsonDocument>("onion-test-3");
-
-                //     collection.InsertMany(DataScraper.dataDocuments);
-                // }
 
                 // Stop the TorSharp tools so that the proxy is no longer listening on the configured port.
                 proxy.Stop();
