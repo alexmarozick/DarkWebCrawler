@@ -8,8 +8,6 @@
 
 Spotlight is an open-source .NET console application developed with Microsoft’s .NET standard 5.0, and is written in C#. The program is meant to be run from any command line tool, and requires the use of specifically defined input commands. Spotlight is the culmination of multiple open-source libraries to simplify the process of crawling and scraping text content from the Dark Web. Amongst these libraries includes: Abot, TorSharp, HtmlAgilityPack, MongoDB, CommandLineParser, and Serilog.
 
-***
-
 ## Requirements
 
 * Windows 10
