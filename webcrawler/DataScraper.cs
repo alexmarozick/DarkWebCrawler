@@ -90,11 +90,11 @@ namespace ScrapeAndCrawl
 
                 switch (pageHandlerType)
                 {
-                    case PageHandlerType.wordFreq:
+                    case PageHandlerType.wordFrequency:
                         //add handler to be called when the crawl for that page is complete
                         crawlerX.PageCrawlCompleted += WordFrequencyHandler;
                         break;
-                    case PageHandlerType.sentAnal:
+                    case PageHandlerType.sentimentAnalysis:
                         crawlerX.PageCrawlCompleted += SentimentAnalysisHandler;
                         break;
                 }

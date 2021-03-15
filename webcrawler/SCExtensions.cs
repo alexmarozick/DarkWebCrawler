@@ -28,8 +28,8 @@ namespace ScrapeAndCrawl.Extensions
     public enum PageHandlerType
     {
         NULL = 0,
-        wordFreq = 1,
-        sentAnal = 2
+        wordFrequency = 1,
+        sentimentAnalysis = 2
     }
 
     public static class Constants
