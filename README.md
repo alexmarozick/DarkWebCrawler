@@ -58,5 +58,5 @@ When running the program you must specify the type of crawl to perform, and then
 
     # Or
 
-    ./bin/Debug/net5.0/webcrawler.exe -m ./path/to/txt/file --handler sentimentAnalysis
+    ./bin/Debug/net5.0/webcrawler.exe -m "./path/to/txt/file" --handler sentimentAnalysis
 ```
